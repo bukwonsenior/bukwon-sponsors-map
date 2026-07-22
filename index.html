@@ -173,7 +173,7 @@ function getCategoryIcon(cat) {
 }
 
 let map, allMarkers = [], allInfoWindows = [], allData = [], displayData = [], openInfoWindow = null;
-let currentSort = 'default';
+let currentSort = 'name';
 
 kakao.maps.load(function() {
   map = new kakao.maps.Map(document.getElementById('map'), {
