@@ -153,7 +153,7 @@
 
 <script type="text/javascript" src="//dapi.kakao.com/v2/maps/sdk.js?appkey=3e728a6e83cb38eec3d7a2321a5f0847&autoload=false"></script>
 <script>
-const SHEET_CSV_URL = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vQASJWT9cqjzjFi7L7Q1gnv6dxYqYq6Z14RBGgJ3W1oWmfEB8QGOq_wTfOGyqR4DfulEvnJUKPXoJsm/pub?output=csv';
+// (구글시트 CSV는 더 이상 쓰지 않습니다. 데이터는 sponsors.json 에서 읽습니다)
 const CENTER = { lat: 37.3422, lng: 127.9202 };
 
 // 업종별 아이콘 매핑
@@ -186,9 +186,9 @@ kakao.maps.load(function() {
 
 async function loadData() {
   try {
-    const res = await fetch(SHEET_CSV_URL);
-    const text = await res.text();
-    const rows = parseCSV(text);
+    // 데이터 원본: 같은 저장소의 sponsors.json (엑셀 → build_sponsors.py 로 생성)
+    const res = await fetch('sponsors.json?v=' + Date.now());
+    const rows = await res.json();
     
     const data = rows.slice(1).filter(r => r[1] && r[5] && r[6]);
     allData = data;
