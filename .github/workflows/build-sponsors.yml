@@ -1,0 +1,36 @@
+name: 후원처 엑셀을 지도 데이터로 바꾸기
+
+on:
+  push:
+    paths:
+      - '북원_후원업체_지도관리.xlsx'
+      - 'build_sponsors.py'
+      - '.github/workflows/build-sponsors.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - run: pip install openpyxl
+      - name: 엑셀 읽어서 sponsors.json 만들기
+        env:
+          KAKAO_REST_KEY: ${{ secrets.KAKAO_REST_KEY }}
+        run: python build_sponsors.py
+      - name: 바뀐 내용 저장
+        run: |
+          if git diff --quiet -- sponsors.json _coords_cache.json; then
+            echo "바뀐 내용이 없습니다."; exit 0
+          fi
+          git config user.name  "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add sponsors.json _coords_cache.json
+          git commit -m "데이터 갱신: 후원처 엑셀 → sponsors.json"
+          git push
