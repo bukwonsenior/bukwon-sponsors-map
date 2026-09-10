@@ -193,8 +193,11 @@ async function loadData() {
     const data = rows.slice(1).filter(r => r[1] && r[5] && r[6]);
     allData = data;
     displayData = [...data];
-    
-    renderMarkers(displayData);
+
+    renderMarkers(displayData, false);
+    // 초기 화면은 복지관을 중심으로 고정 (전체 후원사 맞춤 X)
+    map.setCenter(new kakao.maps.LatLng(CENTER.lat, CENTER.lng));
+    map.setLevel(6);
     renderList(displayData);
     updateCounts(displayData.length);
     document.getElementById('loading').style.display = 'none';
@@ -232,7 +235,7 @@ function sortData(data, sortType) {
   return sorted;
 }
 
-function renderMarkers(data) {
+function renderMarkers(data, fit = true) {
   allMarkers.forEach(m => m.setMap(null));
   allMarkers = [];
   allInfoWindows = [];
@@ -266,9 +269,9 @@ function renderMarkers(data) {
     allInfoWindows.push(infoWindow);
   });
   
-  if (data.length > 1) {
+  if (fit && data.length > 1) {
     map.setBounds(bounds);
-  } else if (data.length === 1) {
+  } else if (fit && data.length === 1) {
     map.setCenter(new kakao.maps.LatLng(parseFloat(data[0][5]), parseFloat(data[0][6])));
     map.setLevel(4);
   }
