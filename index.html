@@ -13,9 +13,14 @@
     width: 100%; height: 100vh;
   }
   
+  /* ★ 지도+패널 2분할 영역 */
   #map-section {
     position: relative;
     width: 100%; height: 55%; min-height: 300px;
+    display: flex;
+  }
+  #map-wrap {
+    flex: 6; position: relative; min-height: 300px;
   }
   #map { width: 100%; height: 100%; }
   
@@ -33,6 +38,82 @@
     box-shadow: 0 2px 8px rgba(0,0,0,0.15);
   }
   
+  #loading {
+    position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%);
+    z-index: 100; background: rgba(255,255,255,0.95); padding: 20px 30px;
+    border-radius: 8px; box-shadow: 0 4px 16px rgba(0,0,0,0.2);
+    font-size: 14px;
+  }
+
+  /* ★ 오른쪽 소개 패널 */
+  #detail-panel {
+    flex: 4; border-left: 1px solid #ddd; background: #fff;
+    display: flex; flex-direction: column;
+    overflow-y: auto;
+  }
+  #detail-panel.empty {
+    align-items: center; justify-content: center;
+  }
+  .detail-placeholder {
+    text-align: center; color: #bbb; padding: 20px;
+  }
+  .detail-placeholder .icon { font-size: 36px; margin-bottom: 8px; }
+  .detail-placeholder .text { font-size: 13px; }
+
+  .detail-header {
+    padding: 16px 18px 12px; border-bottom: 1px solid #f0f0f0;
+  }
+  .detail-header .top {
+    display: flex; align-items: center; gap: 10px;
+  }
+  .detail-header .dh-icon {
+    width: 40px; height: 40px; border-radius: 50%;
+    background: #EA580C; display: flex; align-items: center;
+    justify-content: center; color: #fff; font-size: 16px; flex-shrink: 0;
+  }
+  .detail-header .dh-name {
+    font-size: 16px; font-weight: bold; color: #222;
+  }
+  .detail-header .dh-cat {
+    display: inline-block; background: #FFF7ED; color: #b8860b;
+    padding: 2px 10px; border-radius: 10px; font-size: 11px; margin-top: 3px;
+  }
+
+  .detail-body { padding: 16px 18px; flex: 1; }
+  .detail-row {
+    display: flex; gap: 8px; margin-bottom: 8px; font-size: 13px;
+  }
+  .detail-row .lbl {
+    color: #999; min-width: 42px; flex-shrink: 0; font-size: 12px;
+  }
+  .detail-row .val { color: #333; }
+  .detail-row .val a { color: #185FA5; text-decoration: none; }
+  .detail-row .val a:hover { text-decoration: underline; }
+
+  .detail-divider {
+    border-top: 1px solid #f0f0f0; padding-top: 14px; margin-top: 10px;
+  }
+  .detail-divider .section-title {
+    font-size: 13px; font-weight: bold; color: #9A3412; margin-bottom: 8px;
+  }
+  .detail-divider .desc {
+    font-size: 12px; color: #555; line-height: 1.8;
+  }
+
+  .detail-actions {
+    padding: 12px 18px; border-top: 1px solid #f0f0f0;
+    display: flex; gap: 8px;
+  }
+  .detail-actions a {
+    flex: 1; text-align: center; padding: 9px;
+    background: #FFF7ED; border-radius: 6px;
+    font-size: 12px; color: #EA580C; font-weight: bold;
+    text-decoration: none; cursor: pointer;
+    transition: background 0.15s;
+  }
+  .detail-actions a:hover { background: #ffe9a8; }
+  
+  /* 기존 InfoWindow */
   .info-window {
     padding: 12px 14px; width: 300px;
     font-size: 13px; line-height: 1.6; word-break: keep-all;
@@ -45,13 +126,6 @@
   }
   .info-window .row { color: #555; margin-top: 4px; }
   .info-window .row b { color: #888; display: inline-block; width: 40px; }
-  
-  #loading {
-    position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%);
-    z-index: 100; background: rgba(255,255,255,0.95); padding: 20px 30px;
-    border-radius: 8px; box-shadow: 0 4px 16px rgba(0,0,0,0.2);
-    font-size: 14px;
-  }
   
   /* 명단 영역 */
   #list-section {
@@ -71,7 +145,6 @@
     padding: 2px 10px; border-radius: 12px; font-size: 12px;
   }
   
-  /* 정렬 버튼 영역 */
   .sort-area {
     margin-left: auto; display: flex; gap: 4px;
   }
@@ -116,8 +189,16 @@
   .empty-msg {
     padding: 30px; text-align: center; color: #999; font-size: 13px;
   }
-  
-  @media (max-width: 600px) {
+
+  /* ★ 모바일: 세로 배치 */
+  @media (max-width: 768px) {
+    #map-section { flex-direction: column; height: auto; }
+    #map-wrap { min-height: 300px; height: 50vw; max-height: 400px; }
+    #detail-panel {
+      border-left: none; border-top: 1px solid #ddd;
+      min-height: auto;
+    }
+    #detail-panel.empty { min-height: 80px; }
     #search { width: 160px; font-size: 12px; }
     #panel { font-size: 12px; padding: 8px 10px; }
     .list-item .info .meta { font-size: 11px; }
@@ -129,13 +210,24 @@
 
 <div id="container">
   <div id="map-section">
-    <div id="map"></div>
-    <div id="panel">
-      <strong>♥ 북원노인종합복지관</strong><br>
-      후원업체 <span id="count">0</span>곳
+    <!-- 왼쪽: 지도 -->
+    <div id="map-wrap">
+      <div id="map"></div>
+      <div id="panel">
+        <strong>&#9829; 북원노인종합복지관</strong><br>
+        후원업체 <span id="count">0</span>곳
+      </div>
+      <input type="text" id="search" placeholder="&#128269; 업체명·업종 검색">
+      <div id="loading">지도를 불러오는 중...</div>
     </div>
-    <input type="text" id="search" placeholder="🔍 업체명·업종 검색">
-    <div id="loading">지도를 불러오는 중...</div>
+
+    <!-- 오른쪽: 소개 패널 -->
+    <div id="detail-panel" class="empty">
+      <div class="detail-placeholder">
+        <div class="icon">&#9829;</div>
+        <div class="text">업체를 선택하면<br>상세 정보가 표시됩니다</div>
+      </div>
+    </div>
   </div>
   
   <div id="list-section">
@@ -153,23 +245,21 @@
 
 <script type="text/javascript" src="//dapi.kakao.com/v2/maps/sdk.js?appkey=3e728a6e83cb38eec3d7a2321a5f0847&autoload=false"></script>
 <script>
-// (구글시트 CSV는 더 이상 쓰지 않습니다. 데이터는 sponsors.json 에서 읽습니다)
 const CENTER = { lat: 37.3422, lng: 127.9202 };
 
-// 업종별 아이콘 매핑
 const CATEGORY_ICONS = {
-  '음식점': '🍽', '카페': '☕', '마트': '🛒', '병원': '🏥',
-  '약국': '💊', '미용실': '✂', '세탁': '👔', '학원': '📚',
-  '은행': '🏦', '교회': '⛪', '사찰': '🛕', '기업': '🏢',
-  '공장': '🏭', '기관': '🏛'
+  '음식점': '&#127869;', '카페': '&#9749;', '마트': '&#128722;', '병원': '&#127973;',
+  '약국': '&#128138;', '미용실': '&#9986;', '세탁': '&#128084;', '학원': '&#128218;',
+  '은행': '&#127974;', '교회': '&#9961;', '사찰': '&#128341;', '기업': '&#127970;',
+  '공장': '&#127981;', '기관': '&#127963;'
 };
 
 function getCategoryIcon(cat) {
-  if (!cat) return '♥';
+  if (!cat) return '&#9829;';
   for (const [key, icon] of Object.entries(CATEGORY_ICONS)) {
     if (cat.includes(key)) return icon;
   }
-  return '♥';
+  return '&#9829;';
 }
 
 let map, allMarkers = [], allInfoWindows = [], allData = [], displayData = [], openInfoWindow = null;
@@ -186,16 +276,15 @@ kakao.maps.load(function() {
 
 async function loadData() {
   try {
-    // 데이터 원본: 같은 저장소의 sponsors.json (엑셀 → build_sponsors.py 로 생성)
     const res = await fetch('sponsors.json?v=' + Date.now());
     const rows = await res.json();
     
+    // 헤더: [연번, 상호명, 업종, 주소, 전화, 위도, 경도, 비고, 후원내용, 소개]
     const data = rows.slice(1).filter(r => r[1] && r[5] && r[6]);
     allData = data;
     displayData = [...data];
 
     renderMarkers(displayData, false);
-    // 초기 화면은 복지관을 중심으로 고정 (전체 후원사 맞춤 X)
     map.setCenter(new kakao.maps.LatLng(CENTER.lat, CENTER.lng));
     map.setLevel(6);
     renderList(displayData);
@@ -243,7 +332,7 @@ function renderMarkers(data, fit = true) {
   const bounds = new kakao.maps.LatLngBounds();
   
   data.forEach((row, idx) => {
-    const [no, name, category, addr, tel, lat, lng, memo] = row;
+    const [no, name, category, addr, tel, lat, lng, memo, support, intro] = row;
     const pos = new kakao.maps.LatLng(parseFloat(lat), parseFloat(lng));
     
     const marker = new kakao.maps.Marker({ position: pos, map: map, title: name });
@@ -275,6 +364,43 @@ function renderMarkers(data, fit = true) {
     map.setCenter(new kakao.maps.LatLng(parseFloat(data[0][5]), parseFloat(data[0][6])));
     map.setLevel(4);
   }
+}
+
+// ★ 오른쪽 패널 갱신
+function updateDetailPanel(row) {
+  const [no, name, category, addr, tel, lat, lng, memo, support, intro] = row;
+  const dp = document.getElementById('detail-panel');
+  dp.classList.remove('empty');
+
+  const catIcon = getCategoryIcon(category);
+  const telLink = tel ? `<a href="tel:${escapeHtml(tel)}">${escapeHtml(tel)}</a>` : '-';
+  const naverMap = `https://map.naver.com/v5/search/${encodeURIComponent(addr)}`;
+
+  dp.innerHTML = `
+    <div class="detail-header">
+      <div class="top">
+        <div class="dh-icon">${catIcon}</div>
+        <div>
+          <div class="dh-name">${escapeHtml(name)}</div>
+          ${category ? `<div class="dh-cat">${escapeHtml(category)}</div>` : ''}
+        </div>
+      </div>
+    </div>
+    <div class="detail-body">
+      <div class="detail-row"><span class="lbl">주소</span><span class="val">${escapeHtml(addr || '-')}</span></div>
+      <div class="detail-row"><span class="lbl">전화</span><span class="val">${telLink}</span></div>
+      ${support ? `<div class="detail-row"><span class="lbl">후원</span><span class="val">${escapeHtml(support)}</span></div>` : ''}
+      ${(intro || memo) ? `
+      <div class="detail-divider">
+        <div class="section-title">소개</div>
+        <div class="desc">${escapeHtml(intro || memo)}</div>
+      </div>` : ''}
+    </div>
+    <div class="detail-actions">
+      <a href="${naverMap}" target="_blank" rel="noopener">길찾기</a>
+      ${tel ? `<a href="tel:${escapeHtml(tel)}">전화하기</a>` : ''}
+    </div>
+  `;
 }
 
 function renderList(data) {
@@ -331,6 +457,9 @@ function openMarkerInfo(idx) {
   document.querySelectorAll('.list-item').forEach((el, i) => {
     el.classList.toggle('active', i === idx);
   });
+
+  // ★ 오른쪽 패널 갱신
+  updateDetailPanel(displayData[idx]);
 }
 
 // 검색 필터
@@ -375,26 +504,6 @@ document.querySelectorAll('.sort-btn').forEach(btn => {
     updateCounts(displayData.length);
   });
 });
-
-function parseCSV(text) {
-  const rows = [];
-  let row = [], cell = '', inQuote = false;
-  for (let i = 0; i < text.length; i++) {
-    const c = text[i];
-    if (inQuote) {
-      if (c === '"' && text[i+1] === '"') { cell += '"'; i++; }
-      else if (c === '"') inQuote = false;
-      else cell += c;
-    } else {
-      if (c === '"') inQuote = true;
-      else if (c === ',') { row.push(cell); cell = ''; }
-      else if (c === '\n') { row.push(cell); rows.push(row); row = []; cell = ''; }
-      else if (c !== '\r') cell += c;
-    }
-  }
-  if (cell || row.length) { row.push(cell); rows.push(row); }
-  return rows;
-}
 
 function escapeHtml(s) {
   return String(s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));

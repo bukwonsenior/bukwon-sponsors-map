@@ -64,7 +64,7 @@ def main():
     ws = wb["후원처"]
 
     head = [s(c.value) for c in ws[4]]
-    need = ["게시","상호명","업종","주소","전화","위도","경도","비고"]
+    need = ["게시","상호명","업종","주소","전화","위도","경도","비고","후원내용","소개"]
     for h in need:
         if h not in head:
             errors.append(f"'후원처' 시트 4행에 '{h}' 열이 없습니다. 열 이름을 바꾸지 마세요.")
@@ -97,12 +97,14 @@ def main():
 
         cat  = s(row[ix["업종"]])
         tel  = s(row[ix["전화"]])
-        memo = s(row[ix["비고"]])
+        memo    = s(row[ix["비고"]])
+        support = s(row[ix["후원내용"]])
+        intro   = s(row[ix["소개"]])
         lat  = s(row[ix["위도"]])
         lng  = s(row[ix["경도"]])
 
         rec = {"name": name, "cat": cat, "addr": addr, "tel": tel, "memo": memo,
-               "lat": lat, "lng": lng, "row": r}
+               "support": support, "intro": intro, "lat": lat, "lng": lng, "row": r}
 
         if lat and lng:
             pass                       # 엑셀에 좌표를 직접 넣은 경우 그대로
@@ -146,11 +148,11 @@ def main():
         sys.exit(1)
 
     # index.html 이 쓰는 배열 형태로 출력: [연번, 상호명, 업종, 주소, 전화, 위도, 경도, 비고]
-    header = ["연번","상호명","업종","주소","전화","위도","경도","비고"]
+    header = ["연번","상호명","업종","주소","전화","위도","경도","비고","후원내용","소개"]
     arr = [header]
     for i, rec in enumerate(staged, start=1):
         arr.append([i, rec["name"], rec["cat"], rec["addr"], rec["tel"],
-                    rec["lat"], rec["lng"], rec["memo"]])
+                    rec["lat"], rec["lng"], rec["memo"], rec["support"], rec["intro"]])
 
     OUT.write_text(json.dumps(arr, ensure_ascii=False, indent=1), encoding="utf-8")
     CACHE.write_text(json.dumps(cache, ensure_ascii=False, indent=1), encoding="utf-8")
