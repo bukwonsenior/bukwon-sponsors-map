@@ -243,7 +243,7 @@
   </div>
 </div>
 
-<script type="text/javascript" src="//dapi.kakao.com/v2/maps/sdk.js?appkey=3e728a6e83cb38eec3d7a2321a5f0847&autoload=false"></script>
+<script type="text/javascript" src="https://dapi.kakao.com/v2/maps/sdk.js?appkey=3e728a6e83cb38eec3d7a2321a5f0847&autoload=false" onerror="window.__noKakao=1"></script>
 <script>
 const CENTER = { lat: 37.3422, lng: 127.9202 };
 
@@ -265,40 +265,57 @@ function getCategoryIcon(cat) {
 let map, allMarkers = [], allInfoWindows = [], allData = [], displayData = [], openInfoWindow = null;
 let currentSort = 'name';
 
-kakao.maps.load(function() {
-  map = new kakao.maps.Map(document.getElementById('map'), {
-    center: new kakao.maps.LatLng(CENTER.lat, CENTER.lng),
-    level: 5
+// 지도(카카오)와 데이터를 따로 준비 → 지도가 안 떠도(편집기 미리보기 등) 목록·상세는 보임
+let mapReady = false;
+function noMap(msg) {
+  const l = document.getElementById('loading');
+  l.style.display = 'block';
+  l.textContent = msg || '지도는 홈페이지에서 보입니다 (여기서는 목록만 표시)';
+}
+function initMap() {
+  if (window.__noKakao || !window.kakao || !kakao.maps) { noMap(); return; }
+  kakao.maps.load(function() {
+    map = new kakao.maps.Map(document.getElementById('map'), {
+      center: new kakao.maps.LatLng(CENTER.lat, CENTER.lng),
+      level: 5
+    });
+    map.addControl(new kakao.maps.ZoomControl(), kakao.maps.ControlPosition.RIGHT);
+    mapReady = true;
+    if (allData.length) { renderMarkers(displayData, false); map.setCenter(new kakao.maps.LatLng(CENTER.lat, CENTER.lng)); map.setLevel(6); document.getElementById('loading').style.display = 'none'; }
   });
-  map.addControl(new kakao.maps.ZoomControl(), kakao.maps.ControlPosition.RIGHT);
-  loadData();
-});
+}
+function hasPos(r) { return r[5] !== '' && r[5] != null && r[6] !== '' && r[6] != null; }
 
-async function loadData() {
-  try {
-    const res = await fetch('sponsors.json?v=' + Date.now());
-    const rows = await res.json();
-    
-    // 헤더: [연번, 상호명, 업종, 주소, 전화, 위도, 경도, 비고, 후원내용, 소개]
-    const data = rows.slice(1).filter(r => r[1] && r[5] && r[6]);
-    allData = data;
-    displayData = [...data];
-
+// 편집기 규약: render(데이터) + BW_LOAD 마커 + window.__bwHi
+function render(rows) {
+  // 헤더: [연번, 상호명, 업종, 주소, 전화, 위도, 경도, 비고, 후원내용, 소개]
+  const data = (rows || []).slice(1).filter(r => r[1]);
+  allData = data;
+  displayData = [...data];
+  if (mapReady) {
     renderMarkers(displayData, false);
     map.setCenter(new kakao.maps.LatLng(CENTER.lat, CENTER.lng));
     map.setLevel(6);
-    renderList(displayData);
-    updateCounts(displayData.length);
     document.getElementById('loading').style.display = 'none';
-    
-    if (data.length === 0) {
-      document.getElementById('loading').style.display = 'block';
-      document.getElementById('loading').textContent = '등록된 후원업체가 없습니다.';
-    }
-  } catch (e) {
-    document.getElementById('loading').textContent = '데이터 로딩 실패: ' + e.message;
   }
+  renderList(displayData);
+  updateCounts(displayData.length);
+  if (data.length === 0) noMap('등록된 후원업체가 없습니다.');
 }
+window.__bwHi = function(m) {
+  if (!m.key || m.key.indexOf('n:') !== 0) return true;
+  const idx = displayData.findIndex(r => r[1] === m.key.slice(2));
+  if (idx < 0) return true;
+  openMarkerInfo(idx);
+  const li = document.querySelector('.list-item[data-idx="' + idx + '"]');
+  if (li) { li.classList.add('bwhi'); li.scrollIntoView({ block: 'center' }); }
+  const dp = document.getElementById('detail-panel'); if (dp) dp.classList.add('bwhi');
+  return true;
+};
+
+setTimeout(initMap, 0);
+/*BW_LOAD*/fetch('sponsors.json?v=' + Date.now()).then(r => r.json()).then(render)
+  .catch(e => { document.getElementById('loading').style.display = 'block'; document.getElementById('loading').textContent = '데이터 로딩 실패: ' + e.message; });/*BW_LOAD_END*/
 
 function updateCounts(n) {
   document.getElementById('count').textContent = n;
@@ -333,6 +350,7 @@ function renderMarkers(data, fit = true) {
   
   data.forEach((row, idx) => {
     const [no, name, category, addr, tel, lat, lng, memo, support, intro] = row;
+    if (!hasPos(row)) { allMarkers.push(null); allInfoWindows.push(null); return; }
     const pos = new kakao.maps.LatLng(parseFloat(lat), parseFloat(lng));
     
     const marker = new kakao.maps.Marker({ position: pos, map: map, title: name });
@@ -421,7 +439,7 @@ function renderList(data) {
           <div class="name">${escapeHtml(name)}</div>
           <div class="meta">
             ${category ? `<span class="cat">${escapeHtml(category)}</span>` : ''}
-            ${escapeHtml(addr || '')}
+            ${escapeHtml(addr || '')}${hasPos(row) ? '' : ' <span style="color:#c2410c">📍 위치는 올린 뒤 자동으로 찾아요</span>'}
           </div>
         </div>
       </div>
@@ -440,19 +458,18 @@ function renderList(data) {
 }
 
 function openMarkerInfo(idx) {
-  if (openInfoWindow) openInfoWindow.close();
+  if (openInfoWindow) { openInfoWindow.close(); openInfoWindow = null; }
   
   const marker = allMarkers[idx];
   const infoWindow = allInfoWindows[idx];
-  if (!marker || !infoWindow) return;
-  
-  map.setLevel(3);
-  map.panTo(marker.getPosition());
-  
-  setTimeout(() => {
-    infoWindow.open(map, marker);
-    openInfoWindow = infoWindow;
-  }, 200);
+  if (mapReady && marker && infoWindow) {
+    map.setLevel(3);
+    map.panTo(marker.getPosition());
+    setTimeout(() => {
+      infoWindow.open(map, marker);
+      openInfoWindow = infoWindow;
+    }, 200);
+  }
   
   document.querySelectorAll('.list-item').forEach((el, i) => {
     el.classList.toggle('active', i === idx);
@@ -475,7 +492,7 @@ document.getElementById('search').addEventListener('input', e => {
     );
   }
   displayData = sortData(filtered, currentSort);
-  renderMarkers(displayData);
+  if (mapReady) renderMarkers(displayData);
   renderList(displayData);
   updateCounts(displayData.length);
 });
@@ -499,7 +516,7 @@ document.querySelectorAll('.sort-btn').forEach(btn => {
       );
     }
     displayData = sortData(filtered, currentSort);
-    renderMarkers(displayData);
+    if (mapReady) renderMarkers(displayData);
     renderList(displayData);
     updateCounts(displayData.length);
   });
