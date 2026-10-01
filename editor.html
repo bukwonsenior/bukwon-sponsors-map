@@ -1,0 +1,964 @@
+<!DOCTYPE html>
+<html lang="ko"><head><meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>홈페이지 편집기 · 북원노인종합복지관</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+<style>
+:root{--brand:#F38100;--action:#8A4200;--ink:#2B2320;--gray:#6B655F;--line:#E4DCD2;--soft:#FDF0E2;--bg:#F7F4EF;--ok:#2E8B77;--err:#D9483B;}
+*{margin:0;padding:0;box-sizing:border-box;font-family:'Pretendard','Apple SD Gothic Neo','맑은 고딕',sans-serif;}
+html,body{height:100%;background:var(--bg);color:var(--ink);}
+.top{display:flex;align-items:center;gap:10px;flex-wrap:wrap;padding:10px 16px;background:#fff;border-bottom:1px solid var(--line);position:sticky;top:0;z-index:20;}
+.top h1{font-size:17px;font-weight:800;}
+.top select{border:1.5px solid var(--brand);border-radius:10px;padding:8px 12px;font-size:14px;font-weight:800;color:var(--action);background:var(--soft);cursor:pointer;max-width:260px;}
+.top .sp{flex:1;}
+.btn{border:1.5px solid var(--line);background:#fff;color:var(--ink);font-size:13.5px;font-weight:700;padding:8px 13px;border-radius:10px;cursor:pointer;display:inline-flex;align-items:center;gap:6px;}
+.btn:hover{border-color:var(--brand);}
+.btn.pri{background:var(--brand);border-color:var(--brand);color:#fff;}
+.btn.ok{border-color:#2E8B77;color:#2E8B77;}
+.btn.sm{font-size:12px;padding:6px 10px;color:#7a6a58;}
+.btn.big{font-size:15px;padding:10px 18px;}
+.btn.pri.off{background:#cbbfb2;border-color:#cbbfb2;}
+.btn:disabled{opacity:.6;cursor:wait;}
+.btn input{display:none;}
+.seg{display:inline-flex;border:1.5px solid var(--line);border-radius:10px;overflow:hidden;}
+.seg button{border:none;background:#fff;font-weight:700;font-size:13px;padding:8px 13px;cursor:pointer;color:var(--gray);}
+.seg button.on{background:var(--brand);color:#fff;}
+.wrap{display:flex;height:calc(100vh - 58px);}
+.left{width:52%;min-width:440px;overflow:auto;padding:14px 16px 60px;border-right:1px solid var(--line);}
+.right{flex:1;overflow:auto;background:#fff;padding:14px;}
+.hint{font-size:12.5px;color:var(--gray);margin:2px 0 12px;line-height:1.65;}
+.hint b{color:var(--action);} .hint code{background:#efe7da;padding:1px 6px;border-radius:5px;font-size:12px;}
+.val{margin:0 0 10px;padding:10px 12px;border-radius:10px;font-size:13px;font-weight:700;line-height:1.65;}
+.val.ok{background:#E4F1EC;color:var(--ok);} .val.bad{background:#FBE9E7;color:var(--err);} .val.warn{background:#FFF4E0;color:#9A5B00;}
+.filebox{display:flex;flex-wrap:wrap;gap:10px 16px;align-items:center;background:#fff;border:1px dashed #cdbfa9;border-radius:12px;padding:10px 12px;margin-bottom:6px;font-size:12.5px;}
+.filebox b{color:var(--action);}
+.filebox label{display:flex;align-items:center;gap:6px;font-weight:700;color:#6b5b45;}
+.filebox input{border:1.5px solid #e3dccf;border-radius:7px;padding:6px 8px;font-size:13px;width:150px;}
+.filebox input[readonly]{background:#f3ede3;color:#8a7a66;}
+.filebox .n{flex-basis:100%;font-size:11.5px;color:#a0917d;}
+.area{font-size:13px;font-weight:800;color:#8a7a66;margin:20px 2px 10px;display:flex;align-items:center;gap:8px;}
+.area::after{content:"";flex:1;height:1px;background:#e0d6c8;}
+.tabbar{display:flex;gap:8px;flex-wrap:wrap;align-items:center;padding:12px;background:#fff;border:1.5px solid var(--brand);border-radius:14px;margin-bottom:14px;}
+.tabbar .lbl{font-size:12px;font-weight:800;color:var(--action);margin-right:4px;}
+.chip{display:inline-flex;align-items:center;gap:7px;padding:8px 12px 8px 14px;border-radius:10px;font-size:14px;font-weight:800;cursor:pointer;border:1.5px solid var(--line);background:#fff;color:var(--gray);user-select:none;}
+.chip.on{background:var(--brand);border-color:var(--brand);color:#fff;}
+.chip.over{box-shadow:-4px 0 0 var(--action);}
+.chip .x{font-size:15px;opacity:.55;padding:0 2px;} .chip .x:hover{opacity:1;}
+.addtab{border:1.5px dashed var(--brand);background:var(--soft);color:var(--action);font-weight:800;font-size:13px;padding:8px 13px;border-radius:10px;cursor:pointer;}
+.tabtip{flex-basis:100%;font-size:11.5px;color:#a0917d;font-weight:600;margin-top:2px;}
+.grp{margin-bottom:18px;background:#fff;border:1px solid var(--line);border-left-width:7px;border-radius:12px;padding:14px 14px 12px;box-shadow:0 2px 10px rgba(120,90,50,.06);}
+.grp h3{font-size:15px;font-weight:800;margin-bottom:10px;display:flex;align-items:center;gap:8px;flex-wrap:wrap;}
+.grp h3 .kt{font-size:11px;font-weight:800;color:#fff;padding:3px 9px;border-radius:20px;}
+.grp h3 .cnt{font-size:12px;color:#a0917d;font-weight:700;}
+.grp .tip{font-size:11.5px;color:#a0917d;font-weight:600;margin:-4px 0 8px;}
+table{width:100%;border-collapse:separate;border-spacing:0;}
+th{background:#f3ede3;font-size:12px;font-weight:800;color:#6b5b45;padding:8px 7px;text-align:left;}
+td{border-top:1px solid #eee5d8;padding:8px 6px;vertical-align:top;}
+tbody tr:nth-child(even) td{background:#faf7f2;}
+tr.off td{opacity:.45;}
+td input,td textarea,td select{width:100%;border:1.5px solid #e3dccf;border-radius:7px;padding:8px 9px;font-size:13.5px;background:#fff;resize:vertical;}
+td input:focus,td textarea:focus,td select:focus{outline:none;border-color:var(--brand);box-shadow:0 0 0 3px rgba(243,129,0,.14);}
+td textarea{min-height:40px;line-height:1.45;}
+.c-h{width:24px;}.c-g{width:58px;}.c-ic{width:74px;}.c-x{width:34px;}
+.drag{cursor:grab;color:#c9beac;font-size:17px;text-align:center;user-select:none;padding-top:14px!important;}
+tr.dragging{opacity:.35;} tr.over td{box-shadow:inset 0 3px 0 var(--brand);}
+.del{border:1px solid #f0d5d0;background:#fff;color:var(--err);font-size:15px;font-weight:800;cursor:pointer;width:30px;height:34px;border-radius:7px;}
+.del:hover{background:#FBE9E7;}
+.addrow{margin-top:10px;display:flex;gap:8px;align-items:center;flex-wrap:wrap;}
+.addrow button,.addrow label{border:1.5px dashed var(--line);background:#fff;color:var(--gray);font-weight:700;font-size:12.5px;padding:7px 13px;border-radius:8px;cursor:pointer;}
+.addrow button:hover,.addrow label:hover{border-color:var(--brand);color:var(--action);}
+.addrow input{display:none;}
+.one{font-size:12px;color:#a0917d;font-weight:600;margin-top:8px;}
+.icbtn{display:flex;align-items:center;justify-content:center;width:100%;border:1.5px solid #e3dccf;border-radius:7px;background:#fff;padding:5px;cursor:pointer;min-height:38px;}
+.icbtn:hover{border-color:var(--brand);}
+.icbtn svg{width:24px;height:24px;stroke:var(--brand);fill:none;stroke-width:2;stroke-linecap:round;stroke-linejoin:round;}
+.icbtn .none{font-size:11.5px;color:#b0a896;font-weight:700;}
+#icpop{position:fixed;z-index:60;background:#fff;border:1px solid var(--line);border-radius:12px;box-shadow:0 12px 34px rgba(0,0,0,.2);padding:10px;display:none;grid-template-columns:repeat(8,44px);gap:5px;}
+#icpop button{width:44px;height:48px;border:1px solid #eee5d8;border-radius:8px;background:#fff;cursor:pointer;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px;}
+#icpop button svg{width:21px;height:21px;stroke:var(--action);fill:none;stroke-width:2;stroke-linecap:round;stroke-linejoin:round;}
+#icpop button span{font-size:9.5px;color:#8a7a66;font-weight:700;}
+#icpop button:hover{border-color:var(--brand);background:var(--soft);}
+#icpop .none{grid-column:1/-1;height:auto;font-size:12px;font-weight:700;color:var(--gray);padding:7px;flex-direction:row;}
+.photos{display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:10px;}
+.ph{border:1px solid var(--line);border-radius:10px;overflow:hidden;background:#faf7f2;position:relative;}
+.ph.off{opacity:.45;}
+.ph img{width:100%;aspect-ratio:4/3;object-fit:contain;display:block;background:#efe9df;}
+.ph .noimg{width:100%;aspect-ratio:4/3;display:flex;align-items:center;justify-content:center;background:#efe9df;color:#a0917d;font-size:11.5px;font-weight:700;text-align:center;padding:6px;}
+.ph .new{position:absolute;top:6px;left:6px;background:var(--ok);color:#fff;font-size:10.5px;font-weight:800;padding:2px 7px;border-radius:9px;}
+.ph .pbtn{position:absolute;top:6px;width:24px;height:24px;border-radius:50%;background:rgba(0,0,0,.55);color:#fff;border:none;font-size:13px;font-weight:800;cursor:pointer;}
+.ph .pdel{right:6px;} .ph .pl{right:62px;} .ph .pr{right:34px;}
+.ph .info{padding:7px;display:flex;flex-direction:column;gap:5px;}
+.ph .info input{width:100%;border:1px solid #e3dccf;border-radius:6px;padding:6px;font-size:12px;}
+.ph .info select{border:1px solid #e3dccf;border-radius:6px;padding:4px;font-size:12px;}
+.empty{padding:50px 20px;text-align:center;color:var(--gray);font-weight:700;line-height:1.8;}
+.pvhead{display:flex;align-items:center;gap:10px;font-size:13px;color:var(--gray);font-weight:700;margin-bottom:8px;flex-wrap:wrap;}
+#hbox{font-size:12px;font-weight:700;}
+#hbox .bad{color:var(--err);} #hbox .ok{color:var(--ok);}
+#pvbox{position:relative;overflow:hidden;border:1px solid var(--line);border-radius:10px;background:#fff;}
+#pv{border:0;display:block;transform-origin:top left;background:#fff;}
+#toast{position:fixed;bottom:22px;left:50%;transform:translateX(-50%);background:#2B2320;color:#fff;padding:12px 18px;border-radius:12px;font-size:13.5px;font-weight:700;line-height:1.6;display:none;z-index:99;max-width:680px;box-shadow:0 10px 30px rgba(0,0,0,.25);}
+.thumbs{display:flex;gap:4px;margin-top:5px;flex-wrap:wrap;align-items:center}.thumbs img{width:64px;height:48px;object-fit:cover;border-radius:6px;border:1px solid #e4dcd2}.thumbs .noimg{font-size:11px;color:#b45309;background:#fff7ed;border-radius:6px;padding:4px 6px;max-width:150px}.tadd{cursor:pointer;font-size:20px;padding:2px 6px;border:1px dashed #ccc;border-radius:6px}.tadd input{display:none}
+.fgrid{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:6px 8px}.fgrid .fl{display:flex;flex-direction:column;font-size:11.5px;color:#8a7a66;gap:2px}.fgrid .fl.w2{grid-column:span 2}.fgrid input,.fgrid select{width:100%}td.ro{font-weight:700;color:#5a4a3a;font-size:13px;white-space:nowrap}.chip small{opacity:.7;font-weight:600}
+</style></head>
+<body>
+<div class="top">
+  <h1>홈페이지 편집기</h1>
+  <select id="pagesel"></select>
+  <button class="btn" id="loadlive">🌐 현재 홈페이지 내용 불러오기</button>
+  <label class="btn">📂 내 엑셀 열기<input type="file" id="file" accept=".xlsx"></label>
+  <div class="seg" id="devseg"><button data-d="pc" class="on">PC 화면</button><button data-d="mo">모바일</button></div>
+  <div class="sp"></div>
+  <button class="btn sm" id="ghset" title="관리자용: 이 PC를 홈페이지(GitHub)와 연결">⚙ <span id="ghst">관리자 설정</span></button>
+  <button class="btn sm" id="dl" title="엑셀 파일로 저장 (연결 안 된 PC에서 관리자에게 전달할 때)">💾 엑셀로 저장</button>
+  <button class="btn pri big" id="ghup">⬆ 홈페이지에 올리기</button>
+</div>
+<div class="wrap">
+  <div class="left">
+    <div class="hint" id="hint"></div>
+    <div id="valbox"></div>
+    <div id="editor"></div>
+  </div>
+  <div class="right">
+    <div class="pvhead"><span id="pvtitle">실제 홈페이지 미리보기</span><span id="hbox"></span></div>
+    <div id="pvbox"><iframe id="pv" title="미리보기"></iframe></div>
+  </div>
+</div>
+<div id="icpop"></div>
+<div id="toast"></div>
+
+<script>
+/* ================= 공통 ================= */
+var QS=new URLSearchParams(location.search);
+var RAW=QS.get('base')||'https://raw.githubusercontent.com/bukwonsenior/homepage/main/';
+function repoName(){return QS.get('repo')||(P&&P.repo)||'bukwonsenior/homepage';}
+function rawBase(){return QS.get('base')||(P&&P.repo?'https://raw.githubusercontent.com/'+P.repo+'/main/':RAW);}   // 페이지 틀·엑셀
+var LIVE=QS.get('live')||'https://bukwonsenior.github.io/homepage/';                    // 이미 올라간 사진
+var ICONS={"phone": "<path d=\"M22 16.9v3a2 2 0 01-2.2 2 19.8 19.8 0 01-8.6-3.1 19.5 19.5 0 01-6-6A19.8 19.8 0 012 4.2 2 2 0 014 2h3a2 2 0 012 1.7c.1.9.3 1.8.6 2.6a2 2 0 01-.5 2.1L8 9.6a16 16 0 006 6l1.2-1.1a2 2 0 012.1-.5c.8.3 1.7.5 2.6.6A2 2 0 0122 16.9z\"/>", "home": "<path d=\"M3 21h18M5 21V7l7-4 7 4v14M9 21v-5h6v5\"/>", "meal": "<path d=\"M3 11h18M5 11V8a7 7 0 0114 0v3M4 11v6a3 3 0 003 3h10a3 3 0 003-3v-6\"/>", "talk": "<path d=\"M21 15a2 2 0 01-2 2H7l-4 4V5a2 2 0 012-2h14a2 2 0 012 2z\"/>", "user": "<circle cx=\"12\" cy=\"8\" r=\"4\"/><path d=\"M4 21c0-4 4-6 8-6s8 2 8 6\"/>", "users": "<circle cx=\"9\" cy=\"8\" r=\"3.5\"/><path d=\"M2 21c0-3.5 3-5.5 7-5.5s7 2 7 5.5\"/><path d=\"M16 5a3.5 3.5 0 010 6M22 21c0-3-1.5-4.8-4-5.3\"/>", "clean": "<path d=\"M21 3L11 13\"/><path d=\"M14.5 9.5l-8.5 8.5 3 3 8.5-8.5z\"/><path d=\"M4 21l2-2M8 17l2 2\"/>", "music": "<path d=\"M9 18V5l12-2v13M9 9l12-2\"/><circle cx=\"6\" cy=\"18\" r=\"3\"/><circle cx=\"18\" cy=\"16\" r=\"3\"/>", "health": "<path d=\"M22 12h-4l-3 9L9 3l-3 9H2\"/>", "pill": "<path d=\"M10.5 3.5a5 5 0 017 7l-6 6a5 5 0 01-7-7z\"/><path d=\"M8 8l8 8\"/>", "walk": "<circle cx=\"13\" cy=\"4\" r=\"2\"/><path d=\"M11 21l2-6-3-2 1-5 3 2 2 2M9 21l2-6\"/>", "shield": "<path d=\"M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z\"/>", "star": "<path d=\"M12 2l2.4 7.4H22l-6 4.6 2.3 7.4L12 17l-6.3 4.4L8 14 2 9.4h7.6z\"/>", "heart": "<path d=\"M20.8 5.6a5.5 5.5 0 00-7.8 0L12 6.6l-1-1a5.5 5.5 0 00-7.8 7.8l1 1L12 21l7.8-6.6 1-1a5.5 5.5 0 000-7.8z\"/>", "hand": "<path d=\"M11 13V5a1.5 1.5 0 013 0v6M14 11V4a1.5 1.5 0 013 0v8M8 13V7a1.5 1.5 0 013 0v4M17 8a1.5 1.5 0 013 0v6a7 7 0 01-7 7h-1a7 7 0 01-6-3.5L5 15\"/>", "gift": "<path d=\"M20 12v9H4v-9M2 7h20v5H2zM12 22V7M12 7a3 3 0 10-3-3c0 2 3 3 3 3zM12 7a3 3 0 013-3c0 2-3 3-3 3z\"/>", "bread": "<path d=\"M4 3h16v4H4zM6 7v14h12V7M9 11h6\"/>", "coffee": "<path d=\"M4 8h13v5a5 5 0 01-5 5H9a5 5 0 01-5-5zM17 9h2a2 2 0 010 4h-2M6 3v2M10 3v2M14 3v2\"/>", "mic": "<path d=\"M12 2a3 3 0 013 3v6a3 3 0 01-6 0V5a3 3 0 013-3zM5 11a7 7 0 0014 0M12 18v3\"/>", "mega": "<path d=\"M3 11v2a1 1 0 001 1h2l4 4V6L6 10H4a1 1 0 00-1 1zM15 8a5 5 0 010 8\"/>", "bell": "<path d=\"M18 8a6 6 0 00-12 0c0 7-3 9-3 9h18s-3-2-3-9M13.7 21a2 2 0 01-3.4 0\"/>", "mail": "<rect x=\"3\" y=\"5\" width=\"18\" height=\"14\" rx=\"2\"/><path d=\"M3 7l9 6 9-6\"/>", "book": "<path d=\"M4 5a2 2 0 012-2h13v16H6a2 2 0 00-2 2zM19 3v16\"/>", "edit": "<path d=\"M12 20h9\"/><path d=\"M16.5 3.5a2.1 2.1 0 013 3L7 19l-4 1 1-4z\"/>", "camera": "<path d=\"M3 8a2 2 0 012-2h2l2-2h6l2 2h2a2 2 0 012 2v10a2 2 0 01-2 2H5a2 2 0 01-2-2z\"/><circle cx=\"12\" cy=\"13\" r=\"3.5\"/>", "calendar": "<rect x=\"3\" y=\"4\" width=\"18\" height=\"18\" rx=\"2\"/><path d=\"M16 2v4M8 2v4M3 10h18\"/>", "clock": "<circle cx=\"12\" cy=\"12\" r=\"9\"/><path d=\"M12 7v5l3 2\"/>", "car": "<path d=\"M5 13l1.5-4.5A2 2 0 018.4 7h7.2a2 2 0 011.9 1.5L19 13M5 13h14v5H5zM5 18v2M19 18v2\"/><circle cx=\"7.5\" cy=\"15.5\" r=\"1\"/><circle cx=\"16.5\" cy=\"15.5\" r=\"1\"/>", "bus": "<rect x=\"4\" y=\"4\" width=\"16\" height=\"13\" rx=\"2\"/><path d=\"M4 11h16M8 17v2M16 17v2\"/><circle cx=\"8\" cy=\"14\" r=\"1\"/><circle cx=\"16\" cy=\"14\" r=\"1\"/>", "mappin": "<path d=\"M20 10c0 6-8 12-8 12s-8-6-8-12a8 8 0 1116 0z\"/><circle cx=\"12\" cy=\"10\" r=\"3\"/>", "leaf": "<path d=\"M11 20A7 7 0 014 13c0-6 8-9 16-9 0 8-3 16-9 16z\"/><path d=\"M4 20c4-4 8-6 12-7\"/>", "flower": "<circle cx=\"12\" cy=\"12\" r=\"2.5\"/><path d=\"M12 9.5c0-3 4-4 4-1s-4 1-4 1zM12 14.5c0 3-4 4-4 1s4-1 4-1zM9.5 12c-3 0-4-4-1-4s1 4 1 4zM14.5 12c3 0 4 4 1 4s-1-4-1-4z\"/>", "sun": "<circle cx=\"12\" cy=\"12\" r=\"4\"/><path d=\"M12 2v2M12 20v2M2 12h2M20 12h2M5 5l1.5 1.5M17.5 17.5L19 19M19 5l-1.5 1.5M6.5 17.5L5 19\"/>", "smile": "<circle cx=\"12\" cy=\"12\" r=\"9\"/><path d=\"M8 14s1.5 2 4 2 4-2 4-2M9 9h.01M15 9h.01\"/>", "scissors": "<circle cx=\"6\" cy=\"6\" r=\"2.5\"/><circle cx=\"6\" cy=\"18\" r=\"2.5\"/><path d=\"M8 8l12 10M8 16L20 6\"/>", "wrench": "<path d=\"M21 4a5 5 0 01-6.5 6.5L5 20l-2-2 9.5-9.5A5 5 0 0121 4z\"/>", "bank": "<path d=\"M3 21h18M4 21V10M20 21V10M4 10l8-6 8 6M9 21v-6h6v6\"/>", "card": "<rect x=\"2\" y=\"5\" width=\"20\" height=\"14\" rx=\"2\"/><path d=\"M2 10h20\"/>", "box": "<path d=\"M21 8l-9-5-9 5 9 5 9-5zM3 8v8l9 5 9-5V8M12 13v8\"/>", "link": "<path d=\"M10 13a5 5 0 007 0l3-3a5 5 0 00-7-7l-1 1M14 11a5 5 0 00-7 0l-3 3a5 5 0 007 7l1-1\"/>", "receipt": "<path d=\"M5 3v18l2-1 2 1 2-1 2 1 2-1 2 1V3l-2 1-2-1-2 1-2-1-2 1z\"/><path d=\"M9 8h6M9 12h6\"/>", "pin": "<path d=\"M12 21s-6-5.3-6-10a6 6 0 0112 0c0 4.7-6 10-6 10z\"/><circle cx=\"12\" cy=\"11\" r=\"2.2\"/>", "route": "<circle cx=\"6\" cy=\"19\" r=\"3\"/><circle cx=\"18\" cy=\"5\" r=\"3\"/><path d=\"M9 19h6a3 3 0 003-3V8\"/>", "check": "<path d=\"M20 6L9 17l-5-5\"/>"};
+var ICON_KO={phone:'전화',home:'방문',meal:'식사',talk:'상담',user:'사람',users:'모임',clean:'청소',music:'음악',health:'건강',pill:'약',walk:'걷기',shield:'방역',star:'별',heart:'하트',hand:'손',gift:'선물',bread:'빵',coffee:'차',mic:'방송',mega:'홍보',bell:'알림',mail:'편지',book:'책',edit:'신청',camera:'사진',calendar:'달력',clock:'시간',car:'차량',bus:'버스',mappin:'위치',pin:'장소',route:'경로',leaf:'잎',flower:'꽃',sun:'해',smile:'미소',scissors:'이미용',wrench:'수리',bank:'은행',card:'카드',box:'물품',link:'연결',receipt:'영수증',check:'체크'};
+var COLOR={소개:'#E8833A',신청:'#2E8B77',계좌:'#2E8B77',예금주:'#8a7a66',문의:'#2E8B77',안내:'#D9483B',카드:'#3A7BD5',절차:'#7C6BD6',절차제목:'#7C6BD6',혜택:'#D98324',사진:'#8B5CF6',부제:'#2E8B77',설명:'#E8833A',정보:'#3A7BD5',내용제목:'#D98324',내용:'#D98324'};
+// 내부 행 칸: 0게시 1탭 2종류 3이름/라벨 4내용 5태그·전화 6아이콘 7사진 8캡션 9~ 페이지별 추가칸
+var STD_MAP=[['게시',0],['탭',1],['종류',2],['이름·라벨',3,['이름/라벨']],['내용',4],['태그',5],['아이콘',6],['사진',7],['캡션',8]];
+function page(o){return Object.assign({map:STD_MAP,nslots:9,photo:{file:7,cap:8},top:[],fileFields:[],privacy:false,headKey:'종류',tabWord:'탭'},o);}
+function isX(r){return String(r[0]).toUpperCase()==='X'||r[0]==='×';}
+function tabObj(m,o,n,init){if(!m[n]){m[n]=Object.assign({이름:n},JSON.parse(JSON.stringify(init)));o.push(n);}return m[n];}
+
+/* ================= 페이지 설정 (새 페이지는 여기에 블록 추가) ================= */
+var PAGES={};
+PAGES.volunteer=page({
+  group:'봉사·후원', name:'자원봉사', crumb:'봉사·후원 › 자원봉사', html:'volunteer.html', xlsx:'data/자원봉사.xlsx', sheet:'자원봉사', img:'data/자원봉사_img/',
+  top:[
+    {k:'소개',label:'맨 위 소개 문구',single:1,cols:[{c:4,h:'내용',ta:1}],hi:'.hero p'},
+    {k:'신청',label:'상단 신청 버튼',need:3,cols:[{c:3,h:'버튼 이름'},{c:4,h:'번호 / 안내'},{c:6,icon:1}],hi:'.applybtns a'}
+  ],
+  tab:[
+    {k:'카드',label:'카드',need:3,cols:[{c:3,h:'이름'},{c:4,h:'설명',ta:1},{c:5,h:'태그(시간 등)'},{c:6,icon:1}],hi:'.vc'},
+    {k:'절차',label:'절차(단계)',cols:[{c:3,h:'단계 이름'}],hi:'.stp'},
+    {k:'혜택',label:'혜택 목록',cols:[{c:4,h:'내용',ta:1}],hi:'.bf'},
+    {k:'안내',label:'안내 박스',single:1,cols:[{c:4,h:'내용',ta:1}],hi:'.note'},
+    {k:'사진',label:'활동 사진',photo:1,hi:'.gi'}
+  ],
+  migrate:{일반봉사:['일반 봉사','카드'],시니어봉사:['시니어 봉사','카드'],절차:['신청 절차·혜택','절차'],혜택:['신청 절차·혜택','혜택'],안내:['신청 절차·혜택','안내']},
+  build:function(rows,url){
+    var d={상단:{소개:'',신청:[]},탭:[]},m={},o=[];
+    rows.forEach(function(r){ if(isX(r))return; var t=r[1],k=r[2];
+      if(!t){ if(k==='소개'){if(!d.상단.소개)d.상단.소개=r[4];} else if(k==='신청')d.상단.신청.push({라벨:r[3],값:r[4],아이콘:r[6]}); return; }
+      if(['카드','절차','혜택','안내','사진'].indexOf(k)<0)return;
+      var T=tabObj(m,o,t,{카드:[],절차:[],혜택:[],안내:'',사진:[]});
+      if(k==='카드')T.카드.push({이름:r[3],설명:r[4],태그:r[5],아이콘:r[6]});
+      else if(k==='절차')T.절차.push(r[3]||r[4]);
+      else if(k==='혜택')T.혜택.push(r[4]||r[3]);
+      else if(k==='안내'){if(!T.안내)T.안내=r[4];}
+      else if(k==='사진'){var f=r[7]||r[4];if(f)T.사진.push({파일:url(r,f),캡션:r[8]});}
+    });
+    d.탭=o.map(function(n){return m[n];}); return d;
+  }
+});
+PAGES.donation=page({
+  group:'봉사·후원', name:'후원', crumb:'봉사·후원 › 후원', html:'donation.html', xlsx:'data/후원.xlsx', sheet:'후원', img:'data/후원_img/',
+  top:[
+    {k:'소개',label:'맨 위 소개 문구',single:1,cols:[{c:4,h:'내용',ta:1}],hi:'.hero p'},
+    {k:'계좌',label:'후원 계좌',need:3,cols:[{c:3,h:'은행'},{c:4,h:'계좌번호'},{c:6,icon:1}],hi:'.acct'},
+    {k:'예금주',label:'예금주',single:1,cols:[{c:4,h:'예금주'}],hi:'.holder'},
+    {k:'문의',label:'후원 문의 전화',single:1,bottom:1,cols:[{c:4,h:'전화번호'}],hi:'.qbox'},
+    {k:'안내',label:'맨 아래 안내 박스',single:1,bottom:1,cols:[{c:4,h:'내용',ta:1}],hi:'#pageNote'}
+  ],
+  tab:[
+    {k:'카드',label:'카드',need:3,cols:[{c:3,h:'이름'},{c:4,h:'설명',ta:1},{c:5,h:'태그'},{c:6,icon:1}],hi:'.vc'},
+    {k:'절차',label:'절차(단계)',cols:[{c:3,h:'단계 이름'}],hi:'.stp'},
+    {k:'혜택',label:'혜택 목록',cols:[{c:3,h:'제목'},{c:4,h:'설명',ta:1},{c:6,icon:1}],hi:'.bf'},
+    {k:'안내',label:'탭 안 안내 박스',single:1,cols:[{c:4,h:'내용',ta:1}],hi:'.note'},
+    {k:'사진',label:'사진',photo:1,hi:'.gi'}
+  ],
+  migrate:{방법:['후원 방법','카드'],종류:['후원 종류','카드'],혜택:['후원 혜택','혜택']},
+  build:function(rows,url){
+    var d={상단:{소개:'',계좌:[],예금주:'',문의:'',안내:''},탭:[]},m={},o=[];
+    rows.forEach(function(r){ if(isX(r))return; var t=r[1],k=r[2];
+      if(!t){ var u=d.상단; if(k==='계좌')u.계좌.push({은행:r[3],번호:r[4],아이콘:r[6]}); else if(['소개','예금주','문의','안내'].indexOf(k)>=0&&!u[k])u[k]=r[4]; return; }
+      if(['카드','절차','혜택','안내','사진'].indexOf(k)<0)return;
+      var T=tabObj(m,o,t,{카드:[],절차:[],혜택:[],안내:'',사진:[]});
+      if(k==='카드')T.카드.push({이름:r[3],설명:r[4],태그:r[5],아이콘:r[6]});
+      else if(k==='절차')T.절차.push(r[3]||r[4]);
+      else if(k==='혜택')T.혜택.push({이름:r[3],설명:r[4],아이콘:r[6]});
+      else if(k==='안내'){if(!T.안내)T.안내=r[4];}
+      else if(k==='사진'){var f=r[7]||r[4];if(f)T.사진.push({파일:url(r,f),캡션:r[8]});}
+    });
+    d.탭=o.map(function(n){return m[n];}); return d;
+  }
+});
+
+/* ---- 사업안내(부서별 엑셀 9개): 기존 엑셀 형식 그대로 사용, build_saeop.py와 같은 규칙 ---- */
+var SAEOP_MAP=[['게시',0],['그룹',10],['그룹명',11],['탭',1],['종류',2],['라벨/소제목',3,['라벨·소제목','라벨']],['내용',4],['아이콘',6],['전화',5],['비고',9]];
+var SAEOP_TAB=[
+  {k:'부제',label:'부제 (제목 아래 초록 배지)',single:1,cols:[{c:4,h:'내용'}],hi:'.head .sub'},
+  {k:'설명',label:'설명 (제목 아래 문구)',single:1,cols:[{c:4,h:'내용',ta:1}],hi:'.head p'},
+  {k:'정보',label:'한눈에 보기',req:3,cols:[{c:3,h:'라벨 (이용 대상 등)'},{c:4,h:'값',ta:1},{c:5,h:'전화(선택)'},{c:6,icon:1}],hi:'.icard',hiIf:function(r){return !!r[3];},tip:'아이콘을 비우면 라벨에 맞춰 자동으로 골라요 (대상→사람, 시간→시계, 문의→전화 …)'},
+  {k:'절차제목',label:'절차 제목',single:1,cols:[{c:4,h:'제목 (비우면 “이용 절차”)'}],hi:'.s-steps'},
+  {k:'절차',label:'절차 (단계)',req:3,cols:[{c:3,h:'단계 제목'},{c:4,h:'설명',ta:1}],hi:'.stp',hiIf:function(r){return !!r[3];}},
+  {k:'안내',label:'안내 박스',single:1,cols:[{c:4,h:'내용',ta:1}],hi:'.note'},
+  {k:'내용제목',label:'주요 내용 제목',single:1,cols:[{c:4,h:'제목 (비우면 “주요 내용”)'}],hi:'.s-list'},
+  {k:'내용',label:'주요 내용',req:3,cols:[{c:3,h:'소제목'},{c:4,h:'항목',ta:1}],hi:'.li',hiIf:function(r){return !!r[3]&&!!r[4];},tip:'같은 소제목을 연달아 쓰면 한 묶음으로 보여요'},
+  {k:'사진',label:'현장 사진',photo:1,hi:'.ph'}
+];
+var ICON_BY=[['대상','user'],['시간','clock'],['문의','phone'],['전화','phone'],['신청','edit'],['방법','edit'],['접수','edit'],['장소','pin'],['기간','clock']];
+function guessIcon(l){for(var i=0;i<ICON_BY.length;i++)if(l.indexOf(ICON_BY[i][0])>=0)return ICON_BY[i][1];return 'user';}
+function saeopBuild(rows,url){
+  var tabs=[],ti={},gname='';
+  rows.forEach(function(r){
+    if(isX(r))return; if(r[11])gname=r[11];
+    var tab=r[1],k=r[2],label=r[3],text=r[4],tel=r[5],icon=r[6];
+    if(!tab||!r[10]||SAEOP_TAB.every(function(s){return s.k!==k;}))return;
+    if(!(tab in ti)){ti[tab]=tabs.length;tabs.push({이름표:tab,제목:tab});}
+    var t=tabs[ti[tab]];
+    if(k==='부제')t.부제=text; else if(k==='설명')t.설명=text;
+    else if(k==='정보'){ if(!label)return; var it={라벨:label,값:text,icon:icon||guessIcon(label)};
+      if(tel)it.tel=tel; else if(/문의|전화/.test(label)){var mm=text.match(/0\d{1,2}[-. )]*\d{3,4}[-. ]*\d{4}/);if(mm)it.tel=mm[0];}
+      (t.정보=t.정보||[]).push(it); }
+    else if(k==='절차제목')t.절차제목=text;
+    else if(k==='절차'){if(!label)return;(t.절차=t.절차||[]).push({제목:label,설명:text});}
+    else if(k==='안내')t.안내=text;
+    else if(k==='내용제목')t.내용제목=text;
+    else if(k==='내용'){if(!label)return;var a=(t.내용=t.내용||[]);if(a.length&&a[a.length-1].소제목===label)a[a.length-1].항목.push(text);else a.push({소제목:label,항목:text?[text]:[]});}
+    else if(k==='사진'){if(!text)return;(t.사진=t.사진||[]).push({파일:url(r,text),캡션:label});}
+  });
+  return {대분류:gname||P.name,문의전화:'033-747-0516',탭:tabs};
+}
+[['상담사업','sangdam'],['사례관리','sarye'],['노년사회화교육','nonyeon'],['사회참여권익증진','chamyeo'],['건강생활지원','geongang'],['홍보사업','hongbo'],['특화사업','teukhwa'],['노인일자리','iljari'],['지원사업','jiwon']].forEach(function(x){
+  var n=x[0],code=x[1];
+  PAGES['saeop_'+code]=page({
+    group:code==='jiwon'?'지원사업':'사업안내', name:n, crumb:(code==='jiwon'?'지원사업':'사업안내 › '+n), html:'saeop.html', frame:'saeop.html?group='+code,
+    xlsx:'data/saeop/'+n+'.xlsx', sheet:'사업안내', img:'data/saeop/img/', map:SAEOP_MAP, nslots:12, photo:{file:4,cap:3},
+    tab:SAEOP_TAB, newTabKind:'설명', privacy:true, build:saeopBuild,
+    renameNote:'※ CMS에서 주소에 &tab=탭이름 을 붙여 쓰는 경우, 탭 이름을 바꾸면 그 주소도 같이 바꿔야 해요.',
+    fileFields:[{slot:10,h:'그룹 코드',ro:1,def:code,fill:1},{slot:11,h:'대분류 이름',def:n}],
+    fileNote:'그룹 코드는 CMS iframe 주소(saeop.html?group='+code+')에 쓰이는 값이라 바꿀 수 없어요. 대분류 이름은 화면 맨 위 경로에 보여요.'
+  });
+});
+
+/* ---- 자주 묻는 질문 / 연혁: 종류 칸이 없는 엑셀 → 모든 줄을 한 종류(fixedKind)로 취급 ---- */
+PAGES.faq=page({
+  group:'이용안내', name:'자주 묻는 질문', crumb:'이용안내 › 자주 묻는 질문', html:'faq.html', xlsx:'data/자주묻는질문.xlsx', sheet:'FAQ',
+  map:[['게시',0],['분류',1],['질문',3],['답변',4]], headKey:'질문', fixedKind:'질문', tabWord:'분류',
+  tab:[{k:'질문',label:'질문과 답변',req:3,cols:[{c:3,h:'질문'},{c:4,h:'답변',ta:1}],hi:'.qa',tip:'답변 안의 전화번호(033-…)는 누르면 바로 전화가 걸려요. ※ 프로그램 분류 아래에는 프로그램 편집기의 [문의사항] 항목이 자동으로 덧붙어 나와요(편집기 미리보기에는 안 보일 수 있어요).'}],
+  guide:['■ 한 줄 = 질문 하나. 분류 = 화면 위쪽 분류 버튼(나온 순서대로)','■ 답변 안 줄바꿈(Alt+Enter)은 화면에서도 줄바꿈됩니다.','■ 게시: O=보임 / X=숨김'],
+  build:function(rows){
+    var cats=[],items=[];
+    rows.forEach(function(r){ if(isX(r)||!r[3])return; var c=r[1]||'기타'; if(r[1]&&cats.indexOf(c)<0)cats.push(c); items.push({cat:c,q:r[3],a:r[4]}); });
+    return {categories:cats,items:items,탭:cats.map(function(c){return {이름:c};})};
+  }
+});
+PAGES.history=page({
+  group:'기관소개', name:'연혁', crumb:'기관소개 › 연혁', html:'history.html', xlsx:'data/연혁.xlsx', sheet:'연혁',
+  map:[['게시',0],['연도그룹',1],['연도',3],['날짜',5],['내용',4]], headKey:'연도그룹', fixedKind:'항목', tabWord:'연도 탭', carry:[3],
+  tab:[{k:'항목',label:'연혁 항목',req:4,cols:[{c:3,h:'연도'},{c:5,h:'날짜 (01.15)'},{c:4,h:'내용',ta:1}],hi:'.ev',tip:'같은 연도끼리 날짜 순으로 · 연도가 바뀌는 줄에서 큰 연도 글씨가 새로 나와요 · 새 해는 [+ 연도 탭 추가] 후 맨 앞으로 끌어 옮기세요'}],
+  guide:['■ 한 줄 = 연혁 한 항목. 연도그룹 = 화면 위쪽 탭(나온 순서대로)','■ 날짜는 01.15 처럼 월.일로 씁니다.','■ 게시: O=보임 / X=숨김'],
+  build:function(rows){
+    var G=[],m={};
+    rows.forEach(function(r){ if(isX(r)||!r[1]||!r[4])return; if(!m[r[1]]){m[r[1]]={이름:r[1],항목:[]};G.push(m[r[1]]);} m[r[1]].항목.push({연도:r[3],날짜:r[5],내용:r[4]}); });
+    return {그룹:G,탭:G};
+  }
+});
+
+/* ---- 시설안내: 한 줄 = 실(방), 층명 = 탭, 사진은 쉼표로 여러 장 ---- */
+function splitPh(v){return String(v||'').split(',').map(function(x){return x.trim();}).filter(Boolean).map(function(f){return /^http/.test(f)||/\.(jpe?g|png|webp|gif)$/i.test(f)?f:f+'.jpg';});}
+function floorCode(n){var m=n.match(/^(\d+)\s*층$/);if(m)return['f'+m[1],m[1]+'F'];m=n.match(/^(?:지하|B)\s*(\d+)\s*층?$/i);if(m)return['b'+m[1],'B'+m[1]];if(n==='전경')return['exterior','전경'];return[n,n];}
+PAGES.facility=page({
+  group:'기관소개', name:'시설안내', crumb:'기관소개 › 시설안내', html:'facility-guide.html', xlsx:'북원_시설안내.xlsx', sheet:'시설안내', img:'img/facility/', imgVar:false,
+  map:[['게시',0],['층명',1],['실명',3],['사진',7],['역할',4],['이용방법',5]], headKey:'실명', fixedKind:'실', tabWord:'층',
+  top:[{k:'기관정보',label:'기관 정보 (맨 위 기관명·주소·전화)',cols:[{c:3,h:'항목'},{c:4,h:'내용'}],hi:'.facility-info',
+    hiKey:function(r){return 'i:'+rows.filter(function(x){return x[2]==='기관정보'&&(x[3]||x[4]);}).indexOf(r);},tip:'한 줄 = 한 항목, 순서대로 나와요.'}],
+  readWB:function(wb){
+    var out=[],ws=wb.Sheets['시설안내'];if(!ws)throw '\'시설안내\' 시트가 없어요';
+    var a=XLSX.utils.sheet_to_json(ws,{header:1,defval:''}),H=(a[3]||[]).map(function(x){return String(x).trim();});
+    var M=[['게시',0],['층명',1],['실명',3],['사진',7],['역할',4],['이용방법',5]],ci=M.map(function(m){return H.indexOf(m[0]);});
+    if(ci[2]<0)throw '시설안내 시트 4행에 머리글(실명…)이 없어요';
+    for(var i=4;i<a.length;i++){var row=a[i];if(!row.some(function(c){return String(c).trim();}))continue;var r=['','','실','','','','','','',''];
+      M.forEach(function(m,j){if(ci[j]>=0)r[m[1]]=String(row[ci[j]]).trim();});if(!r[0])r[0]='O';out.push(r);}
+    var wi=wb.Sheets['기관정보'];
+    if(wi){var b=XLSX.utils.sheet_to_json(wi,{header:1,defval:''});for(i=4;i<b.length;i++){var k=String(b[i][0]||'').trim(),v=String(b[i][1]||'').trim();if(k||v)out.push(['O','','기관정보',k,v,'','','','','']);}}
+    return out;
+  },
+  writeWB:function(rows,orig){
+    var wb=XLSX.utils.book_new();
+    function head(n,def){var ws=orig&&orig.Sheets[n];var a=ws?XLSX.utils.sheet_to_json(ws,{header:1,defval:''}).slice(0,4):[];while(a.length<4)a.push([]);a[3]=def;return a;}
+    if(orig&&orig.Sheets['사용법'])XLSX.utils.book_append_sheet(wb,orig.Sheets['사용법'],'사용법');
+    var A=head('시설안내',['게시','층명','실명','사진','역할','이용방법']).concat(rows.filter(function(r){return r[2]==='실';}).map(function(r){return [r[0],r[1],r[3],r[7],r[4],r[5]];}));
+    var ws=XLSX.utils.aoa_to_sheet(A);ws['!cols']=[7,10,16,30,50,32].map(function(w){return{wch:w};});XLSX.utils.book_append_sheet(wb,ws,'시설안내');
+    var I=head('기관정보',['항목','내용']);if(!I[0].length)I[0]=['기관 정보  —  시설안내 맨 위에 나오는 내용'];
+    I=I.concat(rows.filter(function(r){return r[2]==='기관정보'&&(r[3]||r[4]);}).map(function(r){return [r[3],r[4]];}));
+    ws=XLSX.utils.aoa_to_sheet(I);ws['!cols']=[{wch:14},{wch:50}];XLSX.utils.book_append_sheet(wb,ws,'기관정보');
+    return wb;
+  },
+  tab:[{k:'실',label:'실(방)',req:3,cols:[{c:3,h:'실 이름'},{c:7,h:'사진 (쉼표로 최대 3장)',photos:1},{c:4,h:'장소 역할',ta:1},{c:5,h:'이용방법',ta:1}],hi:'.room-btn',
+    tip:'층 이름: 전경 / 1층 / 2층 … · 사진이 없으면 비워 두세요(화면에 "사진 준비 중") · 📷로 사진을 고르면 미리보기에 바로 보여요'}],
+  guide:['■ 한 줄 = 실(방) 하나. 층명이 같은 줄끼리 한 층으로 묶이고 나온 순서대로 화면에 나옵니다.','■ 사진: img/facility/ 폴더의 파일명. 여러 장은 쉼표로 (최대 3장).','■ 게시: O=보임 / X=숨김'],
+  build:function(rows,url){
+    var F=[],m={};
+    rows.forEach(function(r){ if(isX(r)||!r[1]||!r[3])return; var fc=floorCode(r[1]);
+      if(!m[r[1]]){m[r[1]]={code:fc[0],badge:fc[1],name:r[1],rooms:[]};F.push(m[r[1]]);}
+      m[r[1]].rooms.push({name:r[3],photos:splitPh(r[7]).slice(0,3).map(function(f){return /^http/.test(f)?f:url(r,f);}),role:r[4],usage:r[5]}); });
+    var info=rows.filter(function(r){return r[2]==='기관정보'&&(r[3]||r[4]);}).map(function(r){return {항목:r[3],내용:r[4]};});
+    return {기관정보:info,층:F,탭:F.map(function(f){return {이름:f.name};})};
+  }
+});
+
+/* ---- 프로그램: 시트 3개(프로그램·신청안내·안내문)를 한 화면에서. 구분(평생교육·동아리·특강) = 탭 ---- */
+// 프로그램 행 칸: 1구분 3프로그램명 4안내문구 5분류 7강사 8요일 9시작 10종료 11장소 12정원 13수강료 14재료비 15운영시작 16운영종료 17비고 18사진
+var PG_COLS=[['게시',0],['구분',1],['분류',5],['프로그램명',3],['강사',7],['요일',8],['시작시간',9],['종료시간',10],['장소',11],['정원',12],['수강료',13],['재료비',14],['운영시작',15],['운영종료',16],['안내문구',4],['비고(홈페이지에 안 나옴)',17],['사진',18]];
+var PG_DAYS=['월','화','수','목','금','토','일'];
+function pgDays(v){return String(v||'').split(/[,·\/\s]+/).filter(Boolean);}
+function pgCell(v,kind){  // 엑셀 값 → 글자 (날짜·시간 숫자 변환)
+  if(v===''||v==null)return '';
+  if(typeof v==='number'&&(kind==='date'||kind==='time')){var d=XLSX.SSF.parse_date_code(v);if(!d)return String(v);
+    function z(n){return (n<10?'0':'')+n;}
+    return kind==='date'?d.y+'-'+z(d.m)+'-'+z(d.d):z(d.H)+':'+z(d.M);}
+  return String(v).trim();
+}
+function pgDate(v){if(!v)return null;var t=String(v).replace(/[.\/]/g,'-').replace(/-+$/,'');var m=t.match(/^(\d{4})-(\d{1,2})-(\d{1,2})$/);if(!m)return 'INVALID';
+  var d=new Date(+m[1],+m[2]-1,+m[3]);if(d.getMonth()!==+m[2]-1)return 'INVALID';return m[1]+'-'+(m[2].length<2?'0':'')+m[2]+'-'+(m[3].length<2?'0':'')+m[3];}
+var PG_TIME=/^([01]\d|2[0-3]):[0-5]\d$/;
+PAGES.programs=page({
+  group:'프로그램', name:'프로그램', crumb:'프로그램 › 프로그램 시간표', html:'programs.html', xlsx:'data/북원_홈페이지_프로그램관리.xlsx', sheet:'프로그램',
+  nslots:20, map:PG_COLS, fixedTabs:['평생교육','동아리','특강'], tabWord:'구분', privacy:true,
+  top:[
+    {k:'신청안내',label:'신청 안내 (수강신청 안내 화면)',fixed:1,cols:[{c:3,h:'항목',ro:1},{c:4,h:'내용',ta:1},{c:5,h:'설명',ro:1}],hi:'#applyBox',hiKey:function(r){return 'g:'+r[3];},
+      tip:'항목 이름은 바꿀 수 없어요. 날짜는 2026-08-03 처럼 · 현재상태는 신청기간중 / 신청기간아님 · 이용절차·유의사항은 한 줄에 하나씩(엔터)'},
+    {k:'안내문',label:'문의사항 (프로그램 [문의사항] 화면 + 자주 묻는 질문)',bottom:1,cols:[{c:3,h:'제목'},{c:4,h:'내용',ta:1}],hi:'#applyBox',
+      hiKey:function(r){return 'n:'+rows.filter(function(x){return x[2]==='안내문'&&!isX(x)&&x[3];}).indexOf(r);},
+      tip:'누르면 펼쳐지는 안내예요. 자주 묻는 질문 › 프로그램에도 자동으로 함께 나와요 → 제목은 질문 형태로 써 주세요.'}
+  ],
+  tab:[{k:'프로그램',label:'프로그램',form:1,req:3,hi:'.hero',hiKey:function(r){return r[1]+'/'+r[3];},
+    tip:'홈페이지에는 요일→시작시간 순으로 자동 정렬돼요 · 내리려면 게시를 X로 · 운영종료 날짜가 지나면 자동으로 숨겨져요',
+    cols:[{c:3,h:'프로그램명',w:2},{c:5,h:'분류',opts:['','정보화·어학','노래·댄스·악기','운동','서예·공예','미술']},{c:7,h:'강사'},
+          {c:8,h:'요일 (월, 수)'},{c:9,h:'시작 (09:30)'},{c:10,h:'종료 (11:00)'},{c:11,h:'장소'},
+          {c:12,h:'정원'},{c:13,h:'수강료 (0=무료)'},{c:14,h:'재료비',opts:['없음','별도']},{c:15,h:'운영시작'},{c:16,h:'운영종료'},
+          {c:4,h:'안내문구 (상세화면 주황 박스)',w:2},{c:18,h:'사진 주소(선택)'},{c:17,h:'비고 (홈페이지에 안 나옴)',w:2}]}],
+  readWB:function(wb){
+    var out=[];
+    function sheet(n){var ws=wb.Sheets[n];if(!ws)throw '\''+n+'\' 시트가 없어요';return XLSX.utils.sheet_to_json(ws,{header:1,defval:'',raw:true});}
+    var a=sheet('프로그램'),H=(a[3]||[]).map(function(x){return String(x).trim();});
+    var ci=PG_COLS.map(function(m){return H.indexOf(m[0]);});
+    if(ci[3]<0)throw '프로그램 시트 4행에 머리글이 없어요';
+    for(var i=4;i<a.length;i++){var row=a[i];if(!row.some(function(c){return String(c).trim();}))continue;
+      var r=[];for(var s=0;s<20;s++)r.push('');r[2]='프로그램';
+      PG_COLS.forEach(function(m,j){if(ci[j]<0)return;var kind=/운영/.test(m[0])?'date':(/시간/.test(m[0])?'time':'');r[m[1]]=pgCell(row[ci[j]],kind);});
+      if(!r[0])r[0]='O';out.push(r);}
+    var g=sheet('신청안내');
+    for(i=4;i<g.length;i++){var k=String(g[i][0]||'').trim();if(!k)continue;var r=[];for(s=0;s<20;s++)r.push('');
+      r[0]='O';r[2]='신청안내';r[3]=k;r[4]=pgCell(g[i][1],/일$|_시작$|_종료$|선정발표$/.test(k)?'date':'');r[5]=String(g[i][2]||'').trim();out.push(r);}
+    var n=sheet('안내문');
+    for(i=4;i<n.length;i++){var t1=String(n[i][1]||'').trim(),b1=String(n[i][2]||'').trim();if(!t1&&!b1)continue;var r=[];for(s=0;s<20;s++)r.push('');
+      r[0]=String(n[i][0]||'O').trim()||'O';r[2]='안내문';r[3]=t1;r[4]=b1;out.push(r);}
+    return out;
+  },
+  writeWB:function(rows,orig){
+    var wb=XLSX.utils.book_new();
+    function head(n,def){var ws=orig&&orig.Sheets[n];var a=ws?XLSX.utils.sheet_to_json(ws,{header:1,defval:''}).slice(0,4):[];while(a.length<4)a.push([]);if(def)a[3]=def;return a;}
+    if(orig&&orig.Sheets['사용법'])XLSX.utils.book_append_sheet(wb,orig.Sheets['사용법'],'사용법');
+    function num(v){return /^\d+$/.test(v)?+v:v;}
+    var A=head('프로그램',PG_COLS.map(function(m){return m[0];})).concat(rows.filter(function(r){return r[2]==='프로그램';}).map(function(r){return PG_COLS.map(function(m){return m[1]===12||m[1]===13?num(r[m[1]]):r[m[1]];});}));
+    var ws=XLSX.utils.aoa_to_sheet(A);ws['!cols']=[6,9,13,22,10,8,9,9,15,6,9,7,11,11,30,20,10].map(function(w){return{wch:w};});XLSX.utils.book_append_sheet(wb,ws,'프로그램');
+    var G=head('신청안내').concat(rows.filter(function(r){return r[2]==='신청안내';}).map(function(r){return [r[3],r[4],r[5]];}));
+    ws=XLSX.utils.aoa_to_sheet(G);ws['!cols']=[{wch:20},{wch:50},{wch:40}];XLSX.utils.book_append_sheet(wb,ws,'신청안내');
+    var N=head('안내문').concat(rows.filter(function(r){return r[2]==='안내문';}).map(function(r){return [r[0],r[3],r[4]];}));
+    ws=XLSX.utils.aoa_to_sheet(N);ws['!cols']=[{wch:6},{wch:24},{wch:70}];XLSX.utils.book_append_sheet(wb,ws,'안내문');
+    return wb;
+  },
+  lineOf:function(r,i){var sh=r[2]==='프로그램'?'프로그램':(r[2]==='신청안내'?'신청안내':'안내문'),n=0;for(var j=0;j<i;j++)if(rows[j][2]===r[2])n++;return sh+' 시트 '+(n+5)+'행';},
+  validateRow:function(r,ln,errs,warns){
+    if(r[2]==='신청안내'&&r[3]==='현재상태'&&['신청기간중','신청기간아님'].indexOf(r[4])<0)errs.push(ln+': 현재상태는 신청기간중 / 신청기간아님 중 하나여야 해요');
+    if(r[2]==='신청안내'&&/일$|_시작$|_종료$|^선정발표$/.test(r[3])&&r[4]&&pgDate(r[4])==='INVALID')warns.push(ln+': '+r[3]+' 날짜는 2026-08-03 처럼 써 주세요');
+    if(r[2]==='신청안내'&&/종료/.test(r[3])){var sk=r[3].replace('종료','시작'),sr=rows.filter(function(x){return x[2]==='신청안내'&&x[3]===sk;})[0],a1=sr&&pgDate(sr[4]),a2=pgDate(r[4]);
+      if(a1&&a2&&a1!=='INVALID'&&a2!=='INVALID'&&a1>a2)warns.push(ln+': '+r[3]+'('+a2+')이 '+sk+'('+a1+')보다 빨라요');}
+    if(r[2]==='안내문'&&!r[3]&&r[4])errs.push(ln+': 안내문 제목이 비어 있어요');
+    if(r[2]!=='프로그램')return;
+    if(P.fixedTabs.indexOf(r[1])<0)errs.push(ln+': 구분은 평생교육/동아리/특강 중 하나여야 해요 (지금: '+esc(r[1])+')');
+    var d=pgDays(r[8]);if(!d.length)errs.push(ln+': 요일이 비어 있어요');
+    d.forEach(function(x){if(PG_DAYS.indexOf(x)<0)errs.push(ln+': 요일이 이상해요 "'+esc(x)+'" (월·화·수·목·금·토·일)');});
+    [[9,'시작'],[10,'종료']].forEach(function(c){if(!PG_TIME.test(r[c[0]]))errs.push(ln+': '+c[1]+'시간은 09:30 처럼 써 주세요 (지금: "'+esc(r[c[0]])+'")');});
+    if(PG_TIME.test(r[9])&&PG_TIME.test(r[10])&&r[9]>=r[10])errs.push(ln+': 종료시간이 시작시간보다 빠르거나 같아요');
+    if(!r[11])errs.push(ln+': 장소가 비어 있어요');
+    [[12,'정원'],[13,'수강료']].forEach(function(c){if(r[c[0]]&&isNaN(parseFloat(r[c[0]])))errs.push(ln+': '+c[1]+'은 숫자만 넣어 주세요');});
+    var d1=pgDate(r[15]),d2=pgDate(r[16]);
+    if(d1==='INVALID')errs.push(ln+': 운영시작 날짜를 읽을 수 없어요 (2026-08-19 처럼)');
+    if(d2==='INVALID')errs.push(ln+': 운영종료 날짜를 읽을 수 없어요 (2026-08-19 처럼)');
+    if(d1&&d2&&d1!=='INVALID'&&d2!=='INVALID'&&d1>d2)errs.push(ln+': 운영종료가 운영시작보다 빨라요');
+    if(d2&&d2!=='INVALID'&&d2<new Date().toISOString().slice(0,10))warns.push(ln+': '+esc(r[3])+' — 운영종료('+d2+')가 지나 홈페이지에서 자동으로 숨겨져 있어요 (지워도 되고 그대로 둬도 돼요)');
+    var dup=rows.filter(function(x){return x!==r&&!isX(x)&&x[2]==='프로그램'&&x[1]===r[1]&&x[3]===r[3];});
+    if(dup.length)errs.push(ln+': "'+esc(r[3])+'" 이름이 같은 구분 안에 또 있어요 (1반/2반처럼 다르게)');
+  },
+  build:function(rows){
+    var g={},notes=[],ps=[];
+    rows.forEach(function(r){
+      if(r[2]==='신청안내'){var v=r[4];if(/일$|_시작$|_종료$|^선정발표$/.test(r[3])){var d=pgDate(v);if(d&&d!=='INVALID')v=d;}g[r[3]]=v;return;}
+      if(isX(r))return;
+      if(r[2]==='안내문'){if(r[3])notes.push({제목:r[3],내용:r[4]});return;}
+      if(r[2]!=='프로그램'||!r[3])return;
+      var fee=parseInt(parseFloat(r[13]))||0,cap=r[12]?parseInt(parseFloat(r[12])):null,d1=pgDate(r[15]),d2=pgDate(r[16]);
+      ps.push({id:r[1]+'/'+r[3],구분:r[1],분류:r[5]||null,이름:r[3],강사:r[7]||null,요일:pgDays(r[8]),시작시간:r[9],종료시간:r[10],장소:r[11],정원:isNaN(cap)?null:cap,
+        수강료:fee,수강료표시:fee?fee.toLocaleString('ko-KR')+'원':'무료',재료비별도:(r[14]||'없음')==='별도',운영시작:d1==='INVALID'?null:d1,운영종료:d2==='INVALID'?null:d2,안내문구:r[4]||null,사진:r[18]||null});
+    });
+    return {학기:g.학기명||'',문의전화:g.문의전화||'033-747-0516',신청안내:g,안내문:notes,프로그램:ps,탭:P.fixedTabs.map(function(c){return {이름:c};})};
+  }
+});
+
+/* ---- 후원지도 (저장소 bukwon-sponsors-map): 한 줄 = 가게, 업종 = 탭. 좌표는 올린 뒤 GitHub가 자동으로 찾아 엑셀에도 채움 ---- */
+var geoReport=null;
+PAGES.sponsors=page({
+  group:'봉사·후원', name:'후원지도', crumb:'봉사·후원 › 우리동네 후원지도', repo:'bukwonsenior/bukwon-sponsors-map', html:'index.html', xlsx:'북원_후원업체_지도관리.xlsx', sheet:'후원처',
+  nslots:14, map:[['게시',0],['상호명',3],['업종',1],['주소',4],['전화',5],['위도',10],['경도',11],['비고',9],['후원내용',12],['소개',13]],
+  headKey:'상호명', fixedKind:'업체', tabWord:'업종', privacy:false,
+  tab:[{k:'업체',label:'후원 가게',form:1,req:3,hi:'.list-item',hiKey:function(r){return 'n:'+r[3];},
+    tip:'위도·경도는 비워 두세요 → 올리면 1~2분 안에 주소(안 되면 "원주 + 상호명")로 위치를 찾아 채워요 · 주소를 고치면 좌표는 자동으로 지워지고 다시 찾아요',
+    cols:[{c:3,h:'상호명',w:2},{c:4,h:'주소',w:2},{c:5,h:'전화'},{c:12,h:'후원내용'},{c:10,h:'위도 (비우면 자동)'},{c:11,h:'경도 (비우면 자동)'},{c:13,h:'소개',w:2,ta:1},{c:9,h:'비고 (소개가 없을 때 대신 보임)',w:2}]}],
+  onEdit:function(r,c){ if(c===4&&(r[10]||r[11])){r[10]='';r[11]='';toast('주소가 바뀌어 좌표를 지웠어요. 올리면 새 주소로 다시 찾아요.');return true;} return false; },
+  afterLoad:function(){ geoReport=null; fetch(rawBase()+'_geocode_report.json?t='+Date.now()).then(function(r){return r.ok?r.json():null;}).then(function(j){geoReport=j;validate();}).catch(function(){}); },
+  validateRow:function(r,ln,errs,warns){
+    var la=r[10],lo=r[11];
+    if((la&&!lo)||(!la&&lo))errs.push(ln+': 위도·경도는 둘 다 넣거나 둘 다 비워 주세요');
+    else if(la&&(isNaN(parseFloat(la))||isNaN(parseFloat(lo))||parseFloat(la)<33||parseFloat(la)>39||parseFloat(lo)<124||parseFloat(lo)>132))errs.push(ln+': 위도·경도 숫자가 이상해요 (예: 37.38 / 127.95)');
+    if(isX(r)||!geoReport)return;
+    (geoReport.좌표못찾음||[]).forEach(function(g){if(g.상호명===r[3]&&!la)warns.push(ln+': '+esc(r[3])+' — 지난번 올릴 때 주소로 위치를 못 찾아 지도에서 빠져 있어요. 주소를 정확히 고치거나 위도·경도를 직접 넣어 주세요');});
+    (geoReport.새로찾음||[]).forEach(function(g){if(g.상호명===r[3]&&/keyword:원주 /.test(g.방법||''))warns.push(ln+': '+esc(r[3])+' — 주소로 못 찾아 가게 이름으로 위치를 찾았어요. 홈페이지 지도에서 맞는 곳인지 한 번 봐 주세요');});
+  },
+  guide:['■ 한 줄 = 후원 가게 하나. 위도·경도는 비우면 자동으로 채워집니다.','■ 게시: O=보임 / X=숨김'],
+  build:function(rows){
+    var arr=[['연번','상호명','업종','주소','전화','위도','경도','비고','후원내용','소개']],n=0;
+    rows.forEach(function(r){if(isX(r)||!r[3])return;arr.push([++n,r[3],r[1],r[4],r[5],r[10],r[11],r[9],r[12],r[13]]);});
+    arr.탭=tabNames().map(function(c){return {이름:c};});return arr;
+  }
+});
+
+/* ---- 셔틀버스 (저장소 bw_bus_routes): 코스 = 탭, 한 줄 = 정차(정류장명·시각). 정류장 목록은 아래쪽. 정류장번호만 넣으면 좌표 자동 ---- */
+// 행 칸: 0게시 1코스 2종류(코스정보/정차/정류장) 3정류장명 4시각 5설명 7번호 8정류장번호 9위도 10경도 11주소 12비고 13좌표확인 14색상
+var BISMAP=null, BUS_ID={'오전 1코스':'am1','오전 2코스':'am2','오후 코스':'pm'}, BUS_COLORS=['#E8442E','#1F6FEB','#1D8348','#8E44AD','#D35400','#16A085'];
+function busStops(){return rows.filter(function(r){return r[2]==='정류장'&&r[3];});}
+function busPos(r){var la=parseFloat(r[9]),lo=parseFloat(r[10]);if(r[9]!==''&&r[10]!==''&&!isNaN(la)&&!isNaN(lo))return [la,lo];var b=BISMAP&&r[8]&&BISMAP[String(r[8]).trim()];return b||null;}
+function busMin(t){var m=/^(\d{2}):(\d{2})$/.exec(t);return m?(+m[1])*60+(+m[2]):null;}
+PAGES.bus=page({
+  group:'기관소개', name:'셔틀버스', crumb:'기관소개 › 셔틀버스 운행 노선', repo:'bukwonsenior/bw_bus_routes', html:'index.html', xlsx:'셔틀버스_노선관리.xlsx', sheet:'코스',
+  nslots:15, tabWord:'코스', newTabKind:'코스정보', privacy:false,
+  tab:[
+    {k:'코스정보',label:'코스 정보 (탭 아래 설명·색)',single:1,cols:[{c:5,h:'설명 (예: 태장·소초 방면 (등원))'},{c:14,h:'색상 (#E8442E)'}],hiKey:function(r){return 'c:'+r[1]+':info';}},
+    {k:'정차',label:'정차 순서 (위에서부터)',req:3,cols:[{c:3,h:'정류장명',opts:function(){return [''].concat(busStops().map(function(s){return s[3];}));}},{c:4,h:'도착 시각 (07:50)'}],
+      hiKey:function(r){return 'c:'+r[1]+':'+rows.filter(function(x){return x[1]===r[1]&&x[2]==='정차'&&!isX(x);}).indexOf(r);},
+      tip:'줄을 끌어 순서를 바꿀 수 있어요 · 정류장명은 아래 "정류장 목록"에 있는 이름에서 골라요 · 시각이 앞 정류장보다 빠르면 올릴 수 없어요'}
+  ],
+  top:[{k:'정류장',label:'정류장 목록 (모든 코스 공통)',bottom:1,form:1,noPub:1,
+    cols:[{c:3,h:'정류장명',w:2},{c:8,h:'정류장번호 (5자리)'},{c:7,h:'번호 (비우면 자동)'},{c:9,h:'위도 (번호 있으면 비워도 됨)'},{c:10,h:'경도'},{c:11,h:'주소',w:2},{c:12,h:'비고',w:2}],
+    hiKey:function(r){return 's:'+r[3];},
+    tip:'버스정류장 표지판의 정류장번호(5자리)를 넣으면 위치가 자동으로 잡혀요. 번호가 없는 곳(복지관·아파트 정문 등)은 위도·경도를 직접 넣어 주세요.'}],
+  afterLoad:function(){
+    if(BISMAP)return;
+    fetch(rawBase()+encodeURIComponent('원주시_버스정류장_좌표.csv')).then(function(r){return r.ok?r.text():'';}).then(function(t){
+      var m={};t.replace(/^﻿/,'').split(/\r?\n/).slice(1).forEach(function(l){var c=l.split(',');if(c.length>=5&&c[4]&&c[4]!=='0')m[c[4].trim()]=[parseFloat(c[2]),parseFloat(c[3])];});
+      BISMAP=m;render(true);
+    }).catch(function(){});
+  },
+  readWB:function(wb){
+    var out=[];function sh(n){var ws=wb.Sheets[n];if(!ws)throw '\''+n+'\' 시트가 없어요';return XLSX.utils.sheet_to_json(ws,{header:1,defval:'',raw:true});}
+    function blank(){var r=[];for(var i=0;i<15;i++)r.push('');return r;}
+    var a=sh('코스'),H=(a[3]||[]).map(function(x){return String(x).trim();}),ix=function(h){return H.indexOf(h);};
+    if(ix('정류장명')<0)throw '코스 시트 4행에 머리글이 없어요';
+    for(var i=4;i<a.length;i++){var row=a[i];if(!row.some(function(c){return String(c).trim();}))continue;var r=blank();
+      r[0]=String(row[ix('게시')]||'O').trim()||'O';r[1]=String(row[ix('코스')]).trim();r[2]=String(row[ix('종류')]).trim();
+      r[3]=String(row[ix('정류장명')]).trim();r[4]=pgCell(row[ix('시각')],'time');r[5]=String(row[ix('설명')]).trim();r[14]=String(row[ix('색상')]).trim();out.push(r);}
+    var b=sh('정류장'),G=(b[3]||[]).map(function(x){return String(x).trim();}),gx=function(h){return G.indexOf(h);};
+    for(i=4;i<b.length;i++){var w=b[i];if(!w.some(function(c){return String(c).trim();}))continue;var r=blank();
+      r[0]='O';r[2]='정류장';r[3]=String(w[gx('정류장명')]).trim();r[7]=String(w[gx('번호')]).trim();r[8]=String(w[gx('정류장번호')]).trim();
+      r[9]=String(w[gx('위도')]).trim();r[10]=String(w[gx('경도')]).trim();r[11]=String(w[gx('주소')]).trim();r[12]=String(w[gx('비고')]).trim();r[13]=gx('좌표확인')>=0?String(w[gx('좌표확인')]).trim():'';out.push(r);}
+    return out;
+  },
+  writeWB:function(rows,orig){
+    var wb=XLSX.utils.book_new();
+    function head(n,def){var ws=orig&&orig.Sheets[n];var a=ws?XLSX.utils.sheet_to_json(ws,{header:1,defval:''}).slice(0,4):[];while(a.length<4)a.push([]);a[3]=def;return a;}
+    function num(v){return v!==''&&!isNaN(v)?+v:v;}
+    if(orig&&orig.Sheets['사용법'])XLSX.utils.book_append_sheet(wb,orig.Sheets['사용법'],'사용법');
+    var A=head('코스',['게시','코스','종류','정류장명','시각','설명','색상']).concat(rows.filter(function(r){return r[2]==='코스정보'||r[2]==='정차';}).map(function(r){
+      return r[2]==='정차'?[r[0],r[1],'정차',r[3],r[4],'','']:[r[0],r[1],'코스정보','','',r[5],r[14]];}));
+    var ws=XLSX.utils.aoa_to_sheet(A);ws['!cols']=[7,14,10,22,9,26,11].map(function(w){return{wch:w};});XLSX.utils.book_append_sheet(wb,ws,'코스');
+    var S=head('정류장',['번호','정류장명','정류장번호','위도','경도','주소','비고','좌표확인']).concat(rows.filter(function(r){return r[2]==='정류장';}).map(function(r){
+      return [num(r[7]),r[3],r[8],num(r[9]),num(r[10]),r[11],r[12],r[13]];}));
+    ws=XLSX.utils.aoa_to_sheet(S);ws['!cols']=[7,22,11,12,12,30,30,11].map(function(w){return{wch:w};});XLSX.utils.book_append_sheet(wb,ws,'정류장');
+    return wb;
+  },
+  lineOf:function(r,i){var sh=r[2]==='정류장'?'정류장':'코스',n=0;for(var j=0;j<i;j++)if((rows[j][2]==='정류장')===(r[2]==='정류장'))n++;return sh+' 시트 '+(n+5)+'행';},
+  validateRow:function(r,ln,errs,warns){
+    if(r[2]==='정류장'){
+      if(!r[3]){errs.push(ln+': 정류장명이 비어 있어요');return;}
+      if(busStops().filter(function(x){return x[3]===r[3];}).length>1)errs.push(ln+': "'+esc(r[3])+'" 이름이 정류장 목록에 두 번 있어요');
+      if(!busPos(r))errs.push(ln+': '+esc(r[3])+' 위치를 몰라요 → 정류장번호(5자리)를 넣거나 위도·경도를 직접 넣어 주세요'+(r[8]&&BISMAP?' (정류장번호 '+esc(r[8])+'는 원주시 목록에 없어요)':''));
+      return;
+    }
+    if(isX(r))return;
+    if(r[2]==='코스정보'){if(r[14]&&!/^#[0-9A-Fa-f]{6}$/.test(r[14]))errs.push(ln+': 색상은 #E8442E 처럼 써 주세요');return;}
+    if(r[2]!=='정차')return;
+    if(r[3]&&!busStops().some(function(x){return x[3]===r[3];}))errs.push(ln+': 정류장 "'+esc(r[3])+'"이(가) 정류장 목록에 없어요');
+    if(busMin(r[4])===null){errs.push(ln+': 시각은 07:50 처럼 써 주세요 (지금: "'+esc(r[4])+'")');return;}
+    var prev=null;for(var j=rows.indexOf(r)-1;j>=0;j--){var x=rows[j];if(x[1]===r[1]&&x[2]==='정차'&&!isX(x)){prev=x;break;}}
+    if(prev&&busMin(prev[4])!==null&&busMin(r[4])<busMin(prev[4]))errs.push(ln+': '+esc(r[3])+' '+r[4]+'이(가) 앞 정류장('+esc(prev[3])+' '+prev[4]+')보다 빨라요 (시간 역행)');
+  },
+  build:function(rows){
+    var stops=[],byName={},maxId=0;
+    busStops().forEach(function(r){var n=parseInt(r[7]);if(!isNaN(n))maxId=Math.max(maxId,n);});
+    busStops().forEach(function(r){var p=busPos(r);if(!p||byName[r[3]])return;var id=parseInt(r[7]);if(isNaN(id))id=++maxId;
+      var st={id:id,name:r[3],lat:p[0],lng:p[1],bis:r[8],addr:r[11],conf:r[13]||'confirmed',note:r[12]};stops.push(st);byName[r[3]]=st;});
+    var routes=[],rm={};
+    rows.forEach(function(r){if(isX(r)||!r[1]||(r[2]!=='코스정보'&&r[2]!=='정차'))return;
+      if(!rm[r[1]]){rm[r[1]]={id:BUS_ID[r[1]]||('c'+(routes.length+1)),name:r[1],sub:'',color:BUS_COLORS[routes.length%BUS_COLORS.length],stops:[]};routes.push(rm[r[1]]);}
+      var R=rm[r[1]];
+      if(r[2]==='코스정보'){R.sub=r[5];if(/^#[0-9A-Fa-f]{6}$/.test(r[14]))R.color=r[14].toUpperCase();}
+      else{var st=byName[r[3]];if(st&&busMin(r[4])!==null)R.stops.push({seq:R.stops.length+1,id:st.id,name:st.name,time:r[4],lat:st.lat,lng:st.lng,bis:st.bis});}
+    });
+    return {stops:stops,routes:routes,탭:routes.map(function(x){return {이름:x.name};})};
+  }
+});
+
+/* ================= 상태 ================= */
+var P=null,pageKey=null,rows=[],tpl=null,tplOld=false,dev='pc',curTab='',lastHi=null,dirty=false;
+var blobs=new Map(), fblobs=new Map(), upFiles=new Map(), heights=[], renderTimer=null, lastDoc=null;
+
+/* ================= 유틸 ================= */
+function esc(s){return String(s==null?'':s).replace(/[&<>"']/g,function(c){return{'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c];});}
+function svg(n){return ICONS[n]?'<svg viewBox="0 0 24 24">'+ICONS[n]+'</svg>':'';}
+function toast(msg,ms){var t=document.getElementById('toast');t.innerHTML=msg;t.style.display='block';clearTimeout(t._h);t._h=setTimeout(function(){t.style.display='none';},ms||4000);}
+function specOf(r){return ((r[1]?P.tab:P.top).filter(function(s){return s.k===r[2];}))[0];}
+function kindsOf(area){return (area==='top'?P.top:P.tab).map(function(s){return s.k;});}
+function tabNames(){var seen={},l=(P.fixedTabs||[]).slice();l.forEach(function(t){seen[t]=1;});rows.forEach(function(r){if(r[1]&&!seen[r[1]]){seen[r[1]]=1;l.push(r[1]);}});return l;}
+function pf(r){return r[P.photo.file]||'';}
+function photoURL(r,f){return fblobs.get(f)||blobs.get(r)||(LIVE+P.img+encodeURIComponent(f));}
+function mark(){dirty=true;}
+function fileVal(slot){var v='';rows.forEach(function(r){if(r[slot])v=r[slot];});if(!v){var f=P.fileFields.filter(function(x){return x.slot===slot;})[0];v=f?f.def||'':'';}return v;}
+function blank(tab,k){var r=[];for(var i=0;i<P.nslots;i++)r.push('');r[0]='O';r[1]=tab||'';r[2]=k;P.fileFields.forEach(function(f){if(f.fill)r[f.slot]=fileVal(f.slot);});return r;}
+function imgFail(el){var d=document.createElement('div');d.className='noimg';d.textContent=(el.dataset.f||'')+' (아직 GitHub에 없는 사진)';el.replaceWith(d);}
+function rendered(){return lastDoc?lastDoc.탭.map(function(t){return t.이름||t.제목;}):[];}
+
+/* ================= 페이지 선택 ================= */
+(function(){
+  var s=document.getElementById('pagesel'),grp={};
+  Object.keys(PAGES).forEach(function(k){var g=PAGES[k].group;if(!grp[g]){grp[g]=document.createElement('optgroup');grp[g].label=g;s.appendChild(grp[g]);}
+    var o=document.createElement('option');o.value=k;o.textContent=PAGES[k].name;grp[g].appendChild(o);});
+  s.addEventListener('change',function(){if(dirty&&!confirm('내려받지 않은 수정 내용이 있어요. 다른 페이지로 넘어갈까요?')){s.value=pageKey;return;}setPage(s.value);});
+})();
+function setPage(k){
+  pageKey=k;P=PAGES[k];rows=[];blobs.clear();fblobs.clear();upFiles.clear();curTab='';lastHi=null;dirty=false;tpl=null;heights=[];lastDoc=null;
+  document.getElementById('pagesel').value=k;
+  document.getElementById('pvtitle').textContent='실제 홈페이지 미리보기 ('+P.crumb+')';
+  document.getElementById('hint').innerHTML='<b>'+P.name+'</b> 페이지를 편집합니다. 왼쪽을 고치면 <b>오른쪽 화면이 바로</b> 바뀌어요.<br>다 고쳤으면 <b>[⬆ 홈페이지에 올리기]</b>를 누르면 1~2분 뒤 홈페이지에 반영돼요.'
+    +(P.frame?'<br>CMS iframe 주소: <code>'+P.frame+'</code>':'');
+  document.getElementById('editor').innerHTML='<div class="empty">위에서 <b>[🌐 현재 홈페이지 내용 불러오기]</b>를 누르면<br>지금 홈페이지에 올라가 있는 내용이 그대로 들어와요.</div>';
+  document.getElementById('valbox').innerHTML='';document.getElementById('hbox').innerHTML='';
+  loadTemplate();
+}
+function loadTemplate(){
+  var want=pageKey;
+  fetch(rawBase()+P.html+'?t='+Date.now()).then(function(r){if(!r.ok)throw 0;return r.text();}).then(function(t){
+    if(want!==pageKey)return;
+    tplOld=!/tabpanel|__bwHi/.test(t)||(!!P.img&&P.imgVar!==false&&!/var IMG_BASE=/.test(t));
+    var LOAD="setTimeout(function(){try{render(window.__BW__||{});}catch(e){document.getElementById('app').innerHTML='<div class=\"none\">미리보기 오류: '+e.message+'</div>';}},0);";
+    if(/\/\*BW_LOAD\*\/[\s\S]*?\/\*BW_LOAD_END\*\//.test(t)) t=t.replace(/\/\*BW_LOAD\*\/[\s\S]*?\/\*BW_LOAD_END\*\//,function(){return LOAD;});
+    else t=t.replace(/fetch\('data\/[^']+\.json[\s\S]*?불러오지 못했습니다[\s\S]*?\}\);/,function(){return LOAD;});
+    t=t.replace(/var IMG_BASE=("|')[^"']*\1;/,function(){return 'var IMG_BASE="";';});
+    t=t.replace(/var IC=\{[\s\S]*?\n  \};/,function(){return 'var IC='+JSON.stringify(ICONS)+';';});
+    tpl=t;render(true);
+  }).catch(function(){document.getElementById('pvbox').innerHTML='<div class="empty">미리보기 틀을 불러오지 못했어요.<br>인터넷 연결을 확인해 주세요.</div>';});
+}
+
+/* ================= 엑셀 읽기 ================= */
+var origWB=null;
+function readWorkbook(buf,from){
+  var wb=XLSX.read(new Uint8Array(buf),{type:'array'});
+  if(P.readWB){try{rows=P.readWB(wb);}catch(e){alert('엑셀을 읽지 못했어요: '+e+'\n'+P.name+' 페이지 엑셀이 맞는지 확인해 주세요.');return;}
+    origWB=wb;blobs.clear();dirty=false;curTab=tabNames()[0]||'';lastHi=null;if(P.afterLoad)P.afterLoad();buildEditor();render(true);toast('✅ '+from+' 불러왔어요 ('+rows.length+'줄)');return;}
+  var ws=wb.Sheets[P.sheet]||wb.Sheets[wb.SheetNames.filter(function(n){return n!=='사용법';})[0]];
+  var aoa=XLSX.utils.sheet_to_json(ws,{header:1,defval:''});
+  var hi=aoa.findIndex(function(r){var m=r.map(function(x){return String(x).trim();});return m.indexOf(P.headKey)>=0&&m.indexOf('게시')>=0;});
+  if(hi<0){alert('엑셀에서 머리글(게시·'+P.headKey+'…) 줄을 찾지 못했어요. '+P.name+' 페이지 엑셀이 맞는지 확인해 주세요.');return;}
+  var H=aoa[hi].map(function(x){return String(x).trim();});
+  var col=P.map.map(function(m){var names=[m[0]].concat(m[2]||[]);for(var i=0;i<names.length;i++){var j=H.indexOf(names[i]);if(j>=0)return j;}return -1;});
+  var old=!!P.migrate&&H.indexOf('탭')<0, out=[];
+  for(var i=hi+1;i<aoa.length;i++){
+    var row=aoa[i];if(!row||!row.some(function(c){return String(c).trim();}))continue;
+    var r=[];for(var s=0;s<P.nslots;s++)r.push('');
+    P.map.forEach(function(m,j){if(col[j]>=0&&row[col[j]]!=null)r[m[1]]=String(row[col[j]]).trim();});
+    if(!r[0])r[0]='O';
+    if(P.fixedKind)r[2]=P.fixedKind;
+    if(old&&P.migrate[r[2]]){r[1]=P.migrate[r[2]][0];r[2]=P.migrate[r[2]][1];}
+    out.push(r);
+  }
+  rows=out;origWB=wb;blobs.clear();dirty=false;curTab=tabNames()[0]||'';lastHi=null;
+  if(P.afterLoad)P.afterLoad();
+  buildEditor();render(true);
+  toast('✅ '+from+' 불러왔어요 ('+rows.length+'줄)'+(old?'<br>옛날 형식이라 새 형식(탭 칸 포함)으로 바꿔서 열었어요.':''));
+}
+document.getElementById('loadlive').addEventListener('click',function(){
+  if(dirty&&!confirm('수정 중인 내용이 사라져요. 홈페이지 내용을 다시 불러올까요?'))return;
+  fetch(rawBase()+P.xlsx.split('/').map(encodeURIComponent).join('/')+'?t='+Date.now()).then(function(r){if(!r.ok)throw 0;return r.arrayBuffer();})
+    .then(function(b){readWorkbook(b,'현재 홈페이지 내용을');})
+    .catch(function(){alert('홈페이지 엑셀을 불러오지 못했어요. 인터넷을 확인하거나 [📂 내 엑셀 열기]를 이용해 주세요.');});
+});
+document.getElementById('file').addEventListener('change',function(e){
+  var f=e.target.files[0];if(!f)return;
+  if(dirty&&!confirm('수정 중인 내용이 사라져요. 이 파일을 열까요?')){e.target.value='';return;}
+  var rd=new FileReader();rd.onload=function(ev){readWorkbook(ev.target.result,'"'+f.name+'" 파일을');};rd.readAsArrayBuffer(f);e.target.value='';
+});
+
+/* ================= 편집 화면 ================= */
+function buildEditor(){
+  var tabs=tabNames(); if(tabs.indexOf(curTab)<0)curTab=tabs[0]||'';
+  var h='';
+  if(P.fileFields.length){
+    h+='<div class="filebox"><b>이 파일 설정</b>';
+    P.fileFields.forEach(function(f){h+='<label>'+f.h+'<input data-slot="'+f.slot+'" value="'+esc(fileVal(f.slot))+'"'+(f.ro?' readonly':'')+'></label>';});
+    h+=(P.fileNote?'<div class="n">'+P.fileNote+'</div>':'')+'</div>';
+  }
+  var topUp=P.top.filter(function(s){return !s.bottom;}), topDn=P.top.filter(function(s){return s.bottom;});
+  if(topUp.length){h+='<div class="area">페이지 공통 · 위쪽</div>';topUp.forEach(function(s){h+=group(s,'top','');});}
+  var TW=P.tabWord;h+='<div class="area">'+TW+' ('+tabs.length+'개)</div><div class="tabbar" id="tabbar"><span class="lbl">'+TW+'</span>';
+  tabs.forEach(function(t){var n=rows.filter(function(r){return r[1]===t;}).length;h+='<div class="chip'+(t===curTab?' on':'')+'"'+(P.fixedTabs?'':' draggable="true"')+' data-t="'+esc(t)+'">'+esc(t)+(P.fixedTabs?' <small>'+n+'</small>':'<span class="x" title="'+TW+' 삭제" data-del="1">&times;</span>')+'</div>';});
+  h+=P.fixedTabs?'</div>':'<div class="addtab" id="addtab">+ '+TW+' 추가</div><div class="tabtip">클릭=선택 · 더블클릭=이름 바꾸기 · 끌어서 순서 변경 · ×=삭제</div></div>';
+  if(curTab)P.tab.forEach(function(s){h+=group(s,'tab',curTab);});
+  else h+='<div class="empty" style="padding:24px">아직 '+P.tabWord+'이(가) 없어요. <b>[+ '+P.tabWord+' 추가]</b>로 만들어 주세요.</div>';
+  if(topDn.length){h+='<div class="area">페이지 공통 · 아래쪽</div>';topDn.forEach(function(s){h+=group(s,'top','');});}
+  document.getElementById('editor').innerHTML=h;
+  bindTabbar();
+  document.querySelectorAll('.filebox input:not([readonly])').forEach(function(inp){
+    inp.addEventListener('input',function(){var sl=+inp.dataset.slot,v=inp.value,hit=0;rows.forEach(function(r){if(r[sl]){r[sl]=v;hit=1;}});if(!hit&&rows[0])rows[0][sl]=v;mark();render();});
+  });
+}
+function group(s,area,tab){
+  var c=COLOR[s.k]||'#999', list=[];
+  rows.forEach(function(r,i){if(r[2]===s.k&&(area==='top'?!r[1]:r[1]===tab))list.push(i);});
+  var h='<div class="grp" style="border-left-color:'+c+'"><h3 style="color:'+c+'">'+s.label+'<span class="kt" style="background:'+c+'">'+s.k+'</span><span class="cnt">'+(list.length?list.length+'개':'')+'</span></h3>'+(s.tip?'<div class="tip">'+s.tip+'</div>':'');
+  if(s.photo){
+    h+='<div class="photos">';
+    list.forEach(function(i){var r=rows[i],f=pf(r),b=blobs.get(r);
+      h+='<div class="ph'+(isX(r)?' off':'')+'" data-i="'+i+'">'
+        +(b?'<img src="'+esc(b)+'"><span class="new">새 사진</span>':(f?'<img src="'+esc(LIVE+P.img+encodeURIComponent(f))+'" data-f="'+esc(f)+'" onerror="imgFail(this)">':'<div class="noimg">파일명 없음</div>'))
+        +'<button class="pbtn pl" title="앞으로" onclick="movePhoto('+i+',-1)">‹</button><button class="pbtn pr" title="뒤로" onclick="movePhoto('+i+',1)">›</button><button class="pbtn pdel" title="삭제" onclick="delRow('+i+')">×</button>'
+        +'<div class="info"><input placeholder="파일명" value="'+esc(f)+'" oninput="upd('+i+','+P.photo.file+',this.value)"><input placeholder="사진 설명(캡션)" value="'+esc(r[P.photo.cap])+'" oninput="upd('+i+','+P.photo.cap+',this.value)">'
+        +'<select onchange="upd('+i+',0,this.value,1)"><option'+(isX(r)?'':' selected')+'>O</option><option'+(isX(r)?' selected':'')+'>X</option></select></div></div>';
+    });
+    return h+'</div><div class="addrow"><label>📷 사진 추가<input type="file" accept="image/*" multiple onchange="addPhotos(this.files);this.value=\'\'"></label><span class="one">가로 4:3, 2MB 이하 jpg 권장 · 사진 파일은 GitHub <b>'+P.img+'</b>에 같은 이름으로 올려야 해요</span></div></div>';
+  }
+  h+='<table><thead><tr><th class="c-h"></th><th class="c-g">'+(s.fixed||s.noPub?'':'게시')+'</th>';
+  if(s.form)h+='<th>'+s.label+' 정보</th>';else s.cols.forEach(function(col){h+=col.icon?'<th class="c-ic">아이콘</th>':'<th>'+col.h+'</th>';});
+  h+='<th class="c-x"></th></tr></thead><tbody>';
+  list.forEach(function(i){h+=rowHTML(s,i);});
+  h+='</tbody></table>';
+  if(s.fixed)h+='';
+  else if(s.single&&list.length)h+='<div class="one">이 항목은 한 줄만 사용해요.</div>';
+  else h+='<div class="addrow"><button data-k="'+esc(s.k)+'" data-t="'+(area==='top'?'':esc(tab))+'" onclick="addRow(this.dataset.k,this.dataset.t)">+ '+s.label.replace(/ \(.*\)$/,'')+(s.single?' 작성':' 줄 추가')+'</button></div>';
+  return h+'</div>';
+}
+function rowHTML(s,i){
+  var r=rows[i],drag=!s.single&&!s.fixed;
+  var h='<tr data-i="'+i+'"'+(isX(r)?' class="off"':'')+(drag?' ondragover="rowOver(event,'+i+')" ondragleave="this.classList.remove(\'over\')" ondrop="rowDrop(event,'+i+')"':'')+'>';
+  h+=drag?'<td class="drag" draggable="true" ondragstart="rowStart(event,'+i+')" ondragend="rowEnd()" title="끌어서 순서 변경">⠿</td>':'<td></td>';
+  h+=(s.fixed||s.noPub)?'<td></td>':'<td><select onchange="upd('+i+',0,this.value,1)"><option'+(isX(r)?'':' selected')+'>O</option><option'+(isX(r)?' selected':'')+'>X</option></select></td>';
+  if(s.form){h+='<td><div class="fgrid">'+s.cols.map(function(col){return '<label class="fl'+(col.w?' w2':'')+'"><span>'+col.h+'</span>'+fieldHTML(i,r,col)+'</label>';}).join('')+'</div></td>';}
+  else s.cols.forEach(function(col){
+    if(col.icon)h+='<td><button class="icbtn" onclick="openIcon('+i+',event)">'+(r[6]&&ICONS[r[6]]?svg(r[6]):'<span class="none">'+(s.k==='정보'?'자동':'선택')+'</span>')+'</button></td>';
+    else if(col.photos){var fs=splitPh(r[col.c]);h+='<td><input value="'+esc(r[col.c])+'" oninput="upd('+i+','+col.c+',this.value)" onchange="buildEditor()"><div class="thumbs">'+fs.map(function(f){return '<img src="'+esc(photoURL(r,f))+'" data-f="'+esc(f)+'" onerror="imgFail(this)">';}).join('')+'<label class="tadd" title="사진 추가">📷<input type="file" accept="image/*" multiple onchange="addPh('+i+','+col.c+',this.files);this.value=\'\'"></label></div></td>';}
+    else if(col.ta)h+='<td><textarea oninput="upd('+i+','+col.c+',this.value)">'+esc(r[col.c])+'</textarea></td>';
+    else if(col.ro)h+='<td class="ro">'+esc(r[col.c])+'</td>';
+    else h+='<td>'+fieldHTML(i,r,col)+'</td>';
+  });
+  return h+'<td>'+(s.fixed?'':'<button class="del" title="이 줄 삭제" onclick="delRow('+i+')">×</button>')+'</td></tr>';
+}
+function fieldHTML(i,r,col){
+  var v=r[col.c]==null?'':r[col.c];
+  if(col.opts){var o=(typeof col.opts==='function'?col.opts():col.opts).slice();if(o.indexOf(v)<0)o.push(v);return '<select onchange="upd('+i+','+col.c+',this.value)">'+o.map(function(x){return '<option'+(x===v?' selected':'')+'>'+esc(x)+'</option>';}).join('')+'</select>';}
+  if(col.ta)return '<textarea oninput="upd('+i+','+col.c+',this.value)">'+esc(v)+'</textarea>';
+  return '<input value="'+esc(v)+'" oninput="upd('+i+','+col.c+',this.value)">';
+}
+
+/* ================= 행 조작 ================= */
+function upd(i,c,v,rebuild){rows[i][c]=v;if(P.onEdit&&P.onEdit(rows[i],c))rebuild=1;mark();if(rebuild){buildEditor();render(true);}else render();}
+function addRow(k,tab){
+  var r=blank(tab,k), at=-1;
+  rows.forEach(function(x,i){if(x[2]===k&&(x[1]||'')===(tab||''))at=i;});
+  if(at<0&&tab)rows.forEach(function(x,i){if(x[1]===tab)at=i;});
+  if(at>=0&&P.carry&&rows[at][1]===(tab||''))P.carry.forEach(function(c){r[c]=rows[at][c];});
+  if(at<0)rows.push(r);else rows.splice(at+1,0,r);
+  mark();buildEditor();render(true);
+  setTimeout(function(){var el=document.querySelector('tr[data-i="'+rows.indexOf(r)+'"] input,tr[data-i="'+rows.indexOf(r)+'"] textarea');if(el)el.focus();},30);
+}
+function addPh(i,c,files){
+  var list=splitPh(rows[i][c]);
+  for(var n=0;n<files.length;n++){var f=files[n],name=f.name.replace(/\s+/g,'_');
+    if(f.size>2*1024*1024)toast('⚠️ '+esc(f.name)+' 은(는) 2MB가 넘어요. 홈페이지가 느려질 수 있어요.',5000);
+    fblobs.set(name,URL.createObjectURL(f));upFiles.set(name,f);if(list.indexOf(name)<0)list.push(name);}
+  if(list.length>3)toast('⚠️ 사진은 3장까지만 보여요.',4000);
+  upd(i,c,list.join(', '),1);
+}
+function delRow(i){var r=rows[i];if(blobs.get(r)){URL.revokeObjectURL(blobs.get(r));blobs.delete(r);}rows.splice(i,1);mark();buildEditor();render(true);}
+var dragRow=null;
+function rowStart(e,i){dragRow=i;e.dataTransfer.effectAllowed='move';e.target.closest('tr').classList.add('dragging');}
+function rowEnd(){dragRow=null;document.querySelectorAll('tr.dragging,tr.over').forEach(function(t){t.classList.remove('dragging','over');});}
+function same(a,b){return rows[a]&&rows[b]&&rows[a][2]===rows[b][2]&&rows[a][1]===rows[b][1];}
+function rowOver(e,i){if(dragRow==null||!same(dragRow,i))return;e.preventDefault();e.currentTarget.classList.add('over');}
+function rowDrop(e,i){e.preventDefault();var s=dragRow;rowEnd();if(s==null||s===i||!same(s,i))return;var tgt=rows[i],it=rows[s];rows.splice(s,1);rows.splice(rows.indexOf(tgt),0,it);mark();buildEditor();render(true);}
+function movePhoto(i,d){var r=rows[i],sib=[];rows.forEach(function(x,j){if(x[2]==='사진'&&x[1]===r[1])sib.push(j);});var p=sib.indexOf(i),q=p+d;if(q<0||q>=sib.length)return;var j=sib[q];rows[i]=rows[j];rows[j]=r;mark();buildEditor();render(true);}
+function addPhotos(files){
+  if(!curTab){alert('먼저 '+P.tabWord+'을(를) 선택하거나 만들어 주세요.');return;}
+  var at=-1;rows.forEach(function(x,i){if(x[1]===curTab)at=i;});
+  for(var n=0;n<files.length;n++){
+    var f=files[n],name=f.name.replace(/\s+/g,'_');
+    if(f.size>2*1024*1024)toast('⚠️ '+esc(f.name)+' 은(는) 2MB가 넘어요. 홈페이지가 느려질 수 있어요.',5000);
+    var r=blank(curTab,'사진');r[P.photo.file]=name;
+    blobs.set(r,URL.createObjectURL(f));upFiles.set(name,f);
+    if(at<0)rows.push(r);else rows.splice(++at,0,r);
+  }
+  mark();buildEditor();render(true);
+}
+
+/* ================= 탭 조작 ================= */
+function bindTabbar(){
+  var bar=document.getElementById('tabbar');if(!bar)return;
+  var ad=document.getElementById('addtab');if(ad)ad.onclick=addTab;
+  bar.querySelectorAll('.chip').forEach(function(ch){
+    var t=ch.dataset.t;
+    ch.addEventListener('click',function(e){if(e.target.dataset.del){delTab(t);return;}selectTab(t);});
+    if(P.fixedTabs)return;
+    ch.addEventListener('dblclick',function(){renameTab(t);});
+    ch.addEventListener('dragstart',function(e){e.dataTransfer.setData('text/tab',t);e.dataTransfer.effectAllowed='move';});
+    ch.addEventListener('dragover',function(e){if(e.dataTransfer.types.indexOf('text/tab')<0)return;e.preventDefault();ch.classList.add('over');});
+    ch.addEventListener('dragleave',function(){ch.classList.remove('over');});
+    ch.addEventListener('drop',function(e){e.preventDefault();ch.classList.remove('over');moveTab(e.dataTransfer.getData('text/tab'),t);});
+  });
+}
+function selectTab(t){curTab=t;buildEditor();render(true);lastHi={tab:rendered().indexOf(t),sel:'.sec,h1',pos:0};post(lastHi);}
+function addTab(){
+  var n=prompt('새 '+P.tabWord+' 이름을 적어 주세요.');if(!n||!n.trim())return;n=n.trim();
+  if(tabNames().indexOf(n)>=0){alert('이미 있는 이름이에요.');return;}
+  rows.push(blank(n,P.newTabKind||P.tab[0].k));curTab=n;mark();buildEditor();render(true);
+}
+function renameTab(o){
+  var n=prompt(P.tabWord+' 이름을 바꿔 주세요.'+(P.renameNote?'\n'+P.renameNote:''),o);if(!n||!n.trim()||n.trim()===o)return;n=n.trim();
+  if(tabNames().indexOf(n)>=0){alert('이미 있는 이름이에요.');return;}
+  rows.forEach(function(r){if(r[1]===o)r[1]=n;});if(curTab===o)curTab=n;mark();buildEditor();render(true);
+}
+function delTab(t){
+  var cnt=rows.filter(function(r){return r[1]===t;}).length;
+  if(!confirm('"'+t+'" '+P.tabWord+'과(와) 그 안의 내용 '+cnt+'줄을 모두 지울까요?'))return;
+  rows=rows.filter(function(r){if(r[1]===t&&blobs.get(r)){URL.revokeObjectURL(blobs.get(r));blobs.delete(r);}return r[1]!==t;});
+  if(curTab===t)curTab='';mark();buildEditor();render(true);
+}
+function moveTab(src,dst){
+  if(!src||src===dst)return;
+  var mv=rows.filter(function(r){return r[1]===src;}),rest=rows.filter(function(r){return r[1]!==src;});
+  var at=rest.findIndex(function(r){return r[1]===dst;});
+  Array.prototype.splice.apply(rest,[at<0?rest.length:at,0].concat(mv));rows=rest;mark();buildEditor();render(true);
+}
+
+/* ================= 아이콘 팔레트 ================= */
+var icRow=null,icBtn=null;
+(function(){var p=document.getElementById('icpop'),h='<button class="none" onclick="setIcon(\'\')">✕ 아이콘 없음(자동)</button>';
+  Object.keys(ICONS).forEach(function(n){h+='<button title="'+n+'" onclick="setIcon(\''+n+'\')">'+svg(n)+'<span>'+(ICON_KO[n]||n)+'</span></button>';});p.innerHTML=h;})();
+function openIcon(i,ev){ev.stopPropagation();icRow=i;icBtn=ev.currentTarget;var p=document.getElementById('icpop');p.style.display='grid';var r=icBtn.getBoundingClientRect();
+  p.style.left=Math.max(8,Math.min(r.left-180,window.innerWidth-410))+'px';p.style.top=Math.max(8,Math.min(r.bottom+6,window.innerHeight-380))+'px';}
+function setIcon(n){if(icRow!=null){rows[icRow][6]=n;mark();buildEditor();render(true);}document.getElementById('icpop').style.display='none';}
+document.addEventListener('click',function(){document.getElementById('icpop').style.display='none';});
+
+/* ================= 검증 ================= */
+var PRIV=[[/\b01[016-9][-. ]?\d{3,4}[-. ]?\d{4}\b/,'휴대전화번호'],[/\b\d{6}-\d{7}\b/,'주민등록번호']];
+function validate(){
+  var errs=[],warns=[],top=kindsOf('top'),tab=kindsOf('tab'),all=top.concat(tab);
+  rows.forEach(function(r,i){
+    var ln=P.lineOf?P.lineOf(r,i):'엑셀 '+(i+5)+'행',k=r[2];
+    if(!k){errs.push(ln+': 종류가 비었어요');return;}
+    if(all.indexOf(k)<0){errs.push(ln+': 종류 "'+esc(k)+'"는 이 페이지에서 쓸 수 없어요 ('+all.join('·')+')');return;}
+    if(!r[1]&&top.indexOf(k)<0){errs.push(ln+': '+P.tabWord+' 칸이 비어 있어요');return;}
+    if(r[1]&&tab.indexOf(k)<0){errs.push(ln+': '+k+'는 페이지 공통 항목이라 탭 칸을 비워야 해요');return;}
+    if(r[6]&&!ICONS[r[6]])errs.push(ln+': 아이콘 "'+esc(r[6])+'"는 목록에 없어요');
+    P.fileFields.forEach(function(f){if(f.fill&&!r[f.slot])errs.push(ln+': '+f.h+' 칸이 비어 있어요');});
+    var s=specOf(r); if(!s||isX(r))return;
+    if(s.req&&!r[s.req])errs.push(ln+': '+s.label.replace(/ \(.*\)$/,'')+' 줄에는 '+(s.cols.filter(function(c){return c.c===s.req;})[0]||{h:'이름'}).h.replace(/ \(.*\)$/,'')+'이(가) 필요해요');
+    if(s.need&&!r[s.need])warns.push(ln+': '+k+'의 이름이 비어 있어요');
+    if(s.photo&&!pf(r))errs.push(ln+': 사진 파일명이 없어요');
+    (s.cols||[]).forEach(function(col){if(col.photos&&splitPh(r[col.c]).length>3)warns.push(ln+': 사진은 3장까지만 보여요 (4장째부터 안 나와요)');});
+    if(P.validateRow)P.validateRow(r,ln,errs,warns);
+    if(P.privacy)PRIV.forEach(function(p){var m=r.join(' ').match(p[0]);if(m)errs.push(ln+': '+p[1]+'로 보이는 값이 있어요 → '+esc(m[0])+' (개인정보는 올릴 수 없어요)');});
+  });
+  var names=rendered();
+  heights.forEach(function(h,i){if(h>2000)warns.push('탭 "'+esc(names[i]||i+1)+'"이(가) '+h+'px로 홈페이지 칸(2000px)을 넘어요. 내용을 줄이거나 탭을 나눠 주세요');});
+  var b=document.getElementById('valbox');
+  if(!rows.length){b.innerHTML='';return errs;}
+  b.innerHTML=(errs.length?'<div class="val bad">⛔ 고쳐야 할 곳 '+errs.length+'개 (이대로 올리면 홈페이지가 바뀌지 않아요)<br>'+errs.join('<br>')+'</div>':'')
+    +(warns.length?'<div class="val warn">⚠️ 확인해 주세요<br>'+warns.join('<br>')+'</div>':'')
+    +(!errs.length&&!warns.length?'<div class="val ok">✅ 문제 없음 — 이대로 내려받아 올리면 돼요</div>':'')
+    +(tplOld?'<div class="val warn">⚠️ GitHub의 '+P.html+'가 아직 옛날 버전이라 미리보기가 다르게 보일 수 있어요. 새 '+P.html+'를 먼저 올려 주세요.</div>':'');
+  return errs;
+}
+
+/* ================= 미리보기 ================= */
+function post(m){if(!m)return;var o={tab:m.tab,sel:m.sel,pos:m.pos};if(m.row){var s=specOf(m.row);if(s&&s.hiKey&&!isX(m.row))o.key=s.hiKey(m.row);o.tab=rendered().indexOf(m.row[1]);}
+  try{document.getElementById('pv').contentWindow.postMessage({bwHi:o},'*');}catch(e){}}
+function render(now){clearTimeout(renderTimer);if(now)doRender();else renderTimer=setTimeout(doRender,250);}
+function doRender(){
+  if(!tpl){validate();return;}
+  lastDoc=P.build(rows,photoURL);
+  validate();
+  var ti=rendered().indexOf(curTab);
+  var helper='<style>.bwhi{outline:5px solid #FF2D2D!important;outline-offset:4px;border-radius:14px;box-shadow:0 0 0 4px rgba(255,45,45,.22),0 0 26px rgba(255,45,45,.55)!important;animation:bwp 1.1s ease-in-out infinite;}@keyframes bwp{50%{outline-color:#ff9a9a}}</style>'
+   +'<script>(function(){'
+   +'function tab(i){if(i==null||i<0)return;var p=document.getElementById("tp"+i);if(p&&p.classList.contains("hidden")){var b=document.querySelectorAll(".seg button")[i];if(b)b.click();}}'
+   +'function hi(m){if(!m)return;setTimeout(function(){document.querySelectorAll(".bwhi").forEach(function(x){x.classList.remove("bwhi");});if(window.__bwHi&&window.__bwHi(m))return;tab(m.tab);'
+   +'var root=(m.tab!=null&&m.tab>=0)?document.getElementById("tp"+m.tab):document;if(!root)return;var el=root.querySelectorAll(m.sel)[m.pos||0];'
+   +'if(el){if(el.tagName==="DETAILS")el.open=true;el.classList.add("bwhi");el.scrollIntoView({block:"center",behavior:"smooth"});}},70);}'
+   +'function hs(){var ps=[].slice.call(document.querySelectorAll(".tabpanel")),w=document.querySelector(".wrap");if(!w)return;var cur=ps.findIndex(function(p){return !p.classList.contains("hidden");}),out=[];'
+   +'if(!ps.length)out.push(Math.ceil(w.getBoundingClientRect().height)+12);else{ps.forEach(function(p,i){ps.forEach(function(q,j){q.classList.toggle("hidden",j!==i);});out.push(Math.ceil(w.getBoundingClientRect().height)+12);});ps.forEach(function(q,j){q.classList.toggle("hidden",j!==cur);});}'
+   +'parent.postMessage({bwH:out,cur:Math.ceil(w.getBoundingClientRect().height)+20},"*");}'
+   +'setTimeout(function(){tab(window.__TAB__);},20);window.addEventListener("message",function(e){if(e.data&&e.data.bwHi)hi(e.data.bwHi);});'
+   +'setTimeout(hs,350);setTimeout(hs,1500);document.addEventListener("click",function(e){if(e.target.closest(".seg button"))setTimeout(hs,50);});'
+   +'})();<\/script>';
+  var inj='<script>window.__BW__='+JSON.stringify(lastDoc).replace(/</g,'\\u003c')+';window.__TAB__='+ti+';<\/script>';
+  var pv=document.getElementById('pv');
+  pv.onload=function(){if(lastHi)post(lastHi);};
+  pv.srcdoc=tpl.replace('<body>','<body>'+inj).replace('</body>',helper+'</body>');
+  sizePv(null);
+}
+function sizePv(h){
+  var pv=document.getElementById('pv'),box=document.getElementById('pvbox'),w=dev==='pc'?1465:370;
+  var sc=Math.min(1,box.clientWidth/w);pv._h=h||pv._h||1400;
+  pv.style.width=w+'px';pv.style.height=(pv._h+40)+'px';pv.style.transform='scale('+sc+')';box.style.height=((pv._h+40)*sc)+'px';
+}
+window.addEventListener('message',function(e){
+  var d=e.data||{};
+  if(d.bwH){heights=d.bwH;sizePv(d.cur);validate();
+    var names=rendered();
+    document.getElementById('hbox').innerHTML='· '+(heights.length>1?'탭별 ':'')+'높이('+(dev==='pc'?'PC':'모바일')+'): '+heights.map(function(h,i){return '<span class="'+(h>2000?'bad':'ok')+'">'+esc(heights.length>1?(names[i]||''):'페이지 전체')+' '+h+'px</span>';}).join(' / ');}
+});
+document.getElementById('editor').addEventListener('focusin',function(e){
+  var tr=e.target.closest('[data-i]');if(!tr)return;var i=+tr.dataset.i,r=rows[i];if(!r)return;
+  var s=specOf(r);if(!s||isX(r)||(s.hiIf&&!s.hiIf(r))||(s.photo&&!pf(r))){lastHi=null;return;}
+  var pos=0;for(var j=0;j<i;j++){var x=rows[j];if(x[2]===r[2]&&x[1]===r[1]&&!isX(x)&&(!s.hiIf||s.hiIf(x))&&(!s.photo||pf(x)))pos++;}
+  lastHi={tab:r[1]?rendered().indexOf(r[1]):-1,sel:s.hi,pos:pos,row:s.hiKey?r:null};post(lastHi);
+});
+document.getElementById('devseg').addEventListener('click',function(e){var b=e.target.closest('button');if(!b)return;
+  document.querySelectorAll('#devseg button').forEach(function(x){x.classList.remove('on');});b.classList.add('on');dev=b.dataset.d;heights=[];render(true);});
+window.addEventListener('resize',function(){sizePv(null);});
+window.addEventListener('beforeunload',function(e){if(dirty){e.preventDefault();e.returnValue='';}});
+
+/* ================= 엑셀 내려받기 ================= */
+/* ================= 엑셀 만들기 (내려받기·바로 올리기 공용) ================= */
+var XMIME='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet';
+function makeWB(){
+  if(P.writeWB)return P.writeWB(rows,origWB);
+  var HEAD=P.map.map(function(m){return m[0];});
+  var aoa=[[P.name+' 페이지 내용  —  한 줄 = 화면의 한 조각'],['"홈페이지 편집기"로 고친 파일입니다. 편집기로 여는 것을 권장합니다.'],[],HEAD]
+    .concat(rows.map(function(r){return P.map.map(function(m){var v=r[m[1]];return v==null?'':v;});}));
+  var ws=XLSX.utils.aoa_to_sheet(aoa);ws['!cols']=HEAD.map(function(h){return{wch:/내용|설명/.test(h)?60:(/탭|라벨|이름|소제목/.test(h)?22:12)};});
+  var g=P.guide?[['북원노인종합복지관 · '+P.name+' 페이지 관리표'],['이 파일은 "홈페이지 편집기"로 편집하는 것을 권장합니다.'],[]].concat(P.guide.map(function(x){return [x];})):[['북원노인종합복지관 · '+P.name+' 페이지 관리표'],['이 파일은 "홈페이지 편집기"로 편집하는 것을 권장합니다.'],[],
+    ['■ 종류'+(P.top.length?'(탭 비움): '+kindsOf('top').join(' · '):': ')+(P.top.length?'':kindsOf('tab').join(' · '))],
+    P.top.length?['■ 종류(탭 있음): '+kindsOf('tab').join(' · ')]:['■ 모든 줄에 탭 이름이 필요합니다.'],
+    ['■ 사진 파일은 GitHub '+P.img+' 폴더에 같은 이름으로 올립니다.'],['■ 아이콘: '+Object.keys(ICONS).join(' ')],['■ 게시: O=보임 / X=숨김']];
+  var wb=XLSX.utils.book_new();XLSX.utils.book_append_sheet(wb,(origWB&&origWB.Sheets['사용법'])||XLSX.utils.aoa_to_sheet(g),'사용법');XLSX.utils.book_append_sheet(wb,ws,P.sheet);
+  return wb;
+}
+function xlsxBytes(){return new Uint8Array(XLSX.write(makeWB(),{bookType:'xlsx',type:'array'}));}
+function newPhotos(){  // 이번에 새로 고른 사진 중, 아직 내용에 쓰이고 있는 것만
+  var used={};rows.forEach(function(r){if(isX(r))return;r.forEach(function(v){splitPh(v).forEach(function(f){used[f]=1;});});});
+  var out=[];upFiles.forEach(function(f,n){if(used[n])out.push({name:n,file:f});});return out;
+}
+document.getElementById('dl').addEventListener('click',function(){
+  if(!rows.length){alert('먼저 내용을 불러와 주세요.');return;}
+  if(validate().length&&!confirm('고쳐야 할 곳이 남아 있어요. 이대로 올리면 홈페이지가 바뀌지 않아요(자동 검사에서 멈춤). 그래도 내려받을까요?'))return;
+  var fname=P.xlsx.split('/').pop(),blob=new Blob([xlsxBytes()],{type:XMIME});
+  var a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download=fname;document.body.appendChild(a);a.click();
+  setTimeout(function(){URL.revokeObjectURL(a.href);a.remove();},1500);
+  dirty=false;
+  var news=newPhotos().map(function(x){return x.name;});
+  toast('💾 <b>'+fname+'</b> 내려받았어요 → GitHub <b>'+P.xlsx+'</b>에 덮어쓰기'+(news.length?'<br>📷 새 사진 '+news.length+'장도 <b>'+P.img+'</b>에 올려 주세요: '+news.map(esc).join(', '):''),9000);
+});
+
+/* ================= GitHub에 바로 올리기 =================
+   담당자 PC에 'GitHub 토큰'(이 저장소 Contents 읽기·쓰기 권한만)을 한 번 붙여넣어 두면,
+   엑셀 + 새 사진을 커밋 1번으로 올린다 → GitHub Actions가 1~2분 안에 홈페이지에 반영. */
+var GH_API=QS.get('api')||'https://api.github.com', GH_BRANCH='main';
+function ghToken(){try{return localStorage.getItem('bw_gh_token')||'';}catch(e){return '';}}
+function ghSetToken(v){try{if(v)localStorage.setItem('bw_gh_token',v);else localStorage.removeItem('bw_gh_token');}catch(e){}}
+function ghStatus(){var on=!!ghToken();document.getElementById('ghst').textContent=on?'연결됨':'관리자 설정';document.getElementById('ghset').classList.toggle('ok',on);document.getElementById('ghup').classList.toggle('off',!on);}
+function gh(method,path,body){
+  return fetch(GH_API+'/repos/'+repoName()+path,{method:method,headers:{'Authorization':'Bearer '+ghToken(),'Accept':'application/vnd.github+json','Content-Type':'application/json'},body:body?JSON.stringify(body):undefined})
+    .then(function(r){return r.json().catch(function(){return {};}).then(function(j){if(!r.ok){var e=new Error((j&&j.message)||('HTTP '+r.status));e.status=r.status;throw e;}return j;});});
+}
+function ghErr(e){
+  if(e.status===401)return '토큰이 맞지 않거나 기한이 지났어요. 관리자에게 다시 연결을 요청해 주세요 ([⚙ 관리자 설정]).';
+  if(e.status===403||e.status===404)return '이 토큰에 저장소 쓰기 권한이 없어요. 토큰 권한(Contents: Read and write, 저장소 '+repoName()+')을 확인해 주세요.';
+  if(e.status===422||e.status===409)return '그사이 다른 사람이 먼저 올렸어요. 잠시 뒤 다시 눌러 주세요.';
+  return '올리지 못했어요 ('+esc(e.message||e)+'). 인터넷 연결을 확인하거나 [엑셀 내려받기]로 올려 주세요.';
+}
+document.getElementById('ghset').addEventListener('click',function(){
+  var cur=ghToken();
+  var v=prompt('【관리자용】\n'+(cur?'지금 이 PC는 홈페이지(GitHub)에 연결돼 있어요.\n새 토큰을 붙여넣으면 바뀌고, 비우고 확인하면 연결이 해제돼요.\n\n':'')+'GitHub 토큰을 붙여넣어 주세요 (github_pat_로 시작).\n※ 이 PC의 이 브라우저에만 저장돼요. 공용 PC에서는 쓰지 마세요.',cur?'':'');
+  if(v===null)return;v=v.trim();
+  if(!v){ghSetToken('');ghStatus();toast('GitHub 연결을 해제했어요.');return;}
+  ghSetToken(v);ghStatus();
+  gh('GET','').then(function(j){
+    if(j.permissions&&j.permissions.push===false)throw {status:403};
+    toast('✅ GitHub 연결 완료 ('+esc(j.full_name||repoName())+')');
+  }).catch(function(e){ghSetToken('');ghStatus();alert(ghErr(e));});
+});
+function b64(bytes){var s='',CH=0x8000;for(var i=0;i<bytes.length;i+=CH)s+=String.fromCharCode.apply(null,bytes.subarray(i,i+CH));return btoa(s);}
+function fileBytes(f){  // 1MB 넘는 jpg는 가로·세로 1600px 이하로 줄여서 올림
+  var big=f.size>1024*1024&&/jpe?g$/i.test(f.name);
+  if(!big)return f.arrayBuffer().then(function(b){return new Uint8Array(b);});
+  return new Promise(function(res){var img=new Image(),u=URL.createObjectURL(f);img.onload=function(){
+      var k=Math.min(1,1600/Math.max(img.width,img.height)),c=document.createElement('canvas');c.width=Math.round(img.width*k);c.height=Math.round(img.height*k);
+      c.getContext('2d').drawImage(img,0,0,c.width,c.height);c.toBlob(function(b){URL.revokeObjectURL(u);b.arrayBuffer().then(function(a){res(new Uint8Array(a));});},'image/jpeg',0.85);};
+    img.onerror=function(){f.arrayBuffer().then(function(b){res(new Uint8Array(b));});};img.src=u;});
+}
+var ghBusy=false;
+document.getElementById('ghup').addEventListener('click',function(){
+  if(!rows.length){alert('먼저 내용을 불러와 주세요.');return;}
+  if(!ghToken()){alert('이 PC는 아직 홈페이지와 연결되지 않았어요.\n\n관리자에게 "편집기 연결"을 한 번 요청해 주세요. (1분이면 끝나요)\n급하면 [💾 엑셀로 저장]을 눌러 저장한 파일을 관리자에게 보내 주세요.');return;}
+  var errs=validate();if(errs.length){alert('고쳐야 할 곳이 '+errs.length+'개 있어요. 빨간 상자 내용을 먼저 고쳐 주세요.');return;}
+  if(ghBusy)return;
+  var ph=newPhotos();
+  if(!confirm(P.name+' 페이지를 홈페이지에 올릴까요?\n\n· 엑셀: '+P.xlsx+(ph.length?'\n· 새 사진 '+ph.length+'장: '+ph.map(function(x){return x.name;}).join(', '):'')+'\n\n올리면 1~2분 뒤 홈페이지가 바뀌어요.'))return;
+  ghBusy=true;var btn=document.getElementById('ghup');btn.disabled=true;btn.textContent='⏳ 올리는 중…';
+  var items=[{path:P.xlsx,bytes:xlsxBytes()}];
+  Promise.all(ph.map(function(x){return fileBytes(x.file).then(function(b){return {path:P.img+x.name,bytes:b};});})).then(function(pics){
+    items=items.concat(pics);
+    function attempt(n){
+      var base;
+      return gh('GET','/git/ref/heads/'+GH_BRANCH).then(function(ref){base=ref.object.sha;return gh('GET','/git/commits/'+base);})
+        .then(function(c){return Promise.all(items.map(function(it){return gh('POST','/git/blobs',{content:b64(it.bytes),encoding:'base64'}).then(function(b){return {path:it.path,mode:'100644',type:'blob',sha:b.sha};});}))
+          .then(function(tree){return gh('POST','/git/trees',{base_tree:c.tree.sha,tree:tree});});})
+        .then(function(tr){return gh('POST','/git/commits',{message:'편집기: '+P.name+' 수정'+(pics.length?' (사진 '+pics.length+'장)':''),tree:tr.sha,parents:[base]});})
+        .then(function(cm){return gh('PATCH','/git/refs/heads/'+GH_BRANCH,{sha:cm.sha});})
+        .catch(function(e){if(n<2&&(e.status===422||e.status===409))return attempt(n+1);throw e;});
+    }
+    return attempt(0);
+  }).then(function(){
+    dirty=false;upFiles.clear();
+    toast('✅ 홈페이지에 올렸어요. 1~2분 뒤 반영돼요.<br><a href="https://github.com/'+repoName()+'/actions" target="_blank" style="color:#ffd8a8">진행 상황 보기 ›</a>',12000);
+  }).catch(function(e){alert(ghErr(e));})
+  .then(function(){ghBusy=false;btn.disabled=false;btn.textContent='⬆ 홈페이지에 올리기';});
+});
+ghStatus();
+
+setPage(QS.get('page')&&PAGES[QS.get('page')]?QS.get('page'):'volunteer');
+</script>
+</body></html>
